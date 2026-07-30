@@ -1,0 +1,11 @@
+Model Information:
+* title:	Old chair
+* source:	https://sketchfab.com/3d-models/old-chair-657c79a880a34c2a8383e35bda110ca7
+* author:	KZNYKN (https://sketchfab.com/KZNYKN)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Old chair" (https://sketchfab.com/3d-models/old-chair-657c79a880a34c2a8383e35bda110ca7) by KZNYKN (https://sketchfab.com/KZNYKN) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

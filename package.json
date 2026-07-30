@@ -1,0 +1,26 @@
+{
+  "name": "portfolio-phase1",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@react-three/rapier": "^2.2.0",
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^1.27.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-rnd": "^10.5.3",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.3",
+    "vite": "^5.4.10"
+  }
+}

@@ -1,0 +1,440 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 153,
+      "max": [
+        1.203612208366394,
+        1.1039278507232666,
+        0.07245442271232605
+      ],
+      "min": [
+        -1.203612208366394,
+        -1.1552389860153198,
+        -0.036986902356147766
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 1836,
+      "componentType": 5126,
+      "count": 153,
+      "max": [
+        0.9998503923416138,
+        0.9785170555114746,
+        1.0
+      ],
+      "min": [
+        -0.999850332736969,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 153,
+      "max": [
+        0.9999588131904602,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -0.9999587535858154,
+        -0.9999805688858032,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 153,
+      "max": [
+        0.9790807366371155,
+        0.724361777305603
+      ],
+      "min": [
+        0.01006653904914856,
+        0.008481055498123169
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 1224,
+      "componentType": 5126,
+      "count": 153,
+      "max": [
+        0.9790807366371155,
+        0.724361777305603
+      ],
+      "min": [
+        0.01006653904914856,
+        0.008481055498123169
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 438,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 3672,
+      "componentType": 5126,
+      "count": 424,
+      "max": [
+        15.551565170288086,
+        33.91353988647461,
+        69.68639373779297
+      ],
+      "min": [
+        -15.551565170288086,
+        -1.088886022567749,
+        -0.0031386613845825195
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 8760,
+      "componentType": 5126,
+      "count": 424,
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 2448,
+      "componentType": 5126,
+      "count": 424,
+      "max": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 2448,
+      "componentType": 5126,
+      "count": 424,
+      "max": [
+        1.9834251403808594,
+        0.9891955852508545
+      ],
+      "min": [
+        0.027458548545837402,
+        0.012142956256866455
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 5840,
+      "componentType": 5126,
+      "count": 424,
+      "max": [
+        1.9834251403808594,
+        0.9891955852508545
+      ],
+      "min": [
+        0.027458548545837402,
+        0.012142956256866455
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 1752,
+      "componentType": 5125,
+      "count": 828,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "KZNYKN (https://sketchfab.com/KZNYKN)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/old-chair-657c79a880a34c2a8383e35bda110ca7",
+      "title": "Old chair"
+    },
+    "generator": "Sketchfab-12.67.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 5064,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9232,
+      "byteOffset": 5064,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 13848,
+      "byteOffset": 14296,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9232,
+      "byteOffset": 28144,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 37376,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/Chair_baseColor.png"
+    },
+    {
+      "uri": "textures/Chair_metallicRoughness.png"
+    },
+    {
+      "uri": "textures/Chair_normal.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Chair",
+      "normalTexture": {
+        "index": 2
+      },
+      "occlusionTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0.0,
+        "metallicRoughnessTexture": {
+          "index": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Seat_low_Chair_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3,
+            "TEXCOORD_1": 4
+          },
+          "indices": 5,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Backplanks_2_low_Chair_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 7,
+            "POSITION": 6,
+            "TANGENT": 8,
+            "TEXCOORD_0": 9,
+            "TEXCOORD_1": 10
+          },
+          "indices": 11,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "931fad5d9b0142c29e39cd6188e356d5.fbx"
+    },
+    {
+      "children": [
+        3,
+        5
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4
+      ],
+      "matrix": [
+        21.127838134765625,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -3.44216174299666e-06,
+        -21.127838134765344,
+        0.0,
+        0.0,
+        21.127838134765344,
+        -3.44216174299666e-06,
+        0.0,
+        0.0,
+        54.54520034790039,
+        0.0,
+        1.0
+      ],
+      "name": "Seat_low"
+    },
+    {
+      "mesh": 0,
+      "name": "Seat_low_Chair_0"
+    },
+    {
+      "children": [
+        6
+      ],
+      "matrix": [
+        1.5471419095993042,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -2.5206141102749403e-07,
+        -1.5471419095992838,
+        0.0,
+        0.0,
+        1.5471419095992838,
+        -2.5206141102749403e-07,
+        0.0,
+        0.0,
+        -0.191717728972435,
+        29.84159278869629,
+        1.0
+      ],
+      "name": "Backplanks_2_low"
+    },
+    {
+      "mesh": 1,
+      "name": "Backplanks_2_low_Chair_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}

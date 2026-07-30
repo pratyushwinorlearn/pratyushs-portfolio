@@ -1,0 +1,11 @@
+Model Information:
+* title:	Inside Galaxy Skybox HDRI 360 panorama
+* source:	https://sketchfab.com/3d-models/inside-galaxy-skybox-hdri-360-panorama-96183eed1ae2425baddb75ca92103f87
+* author:	Aliaksandr.melas (https://sketchfab.com/alexandr.melas)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Inside Galaxy Skybox HDRI 360 panorama" (https://sketchfab.com/3d-models/inside-galaxy-skybox-hdri-360-panorama-96183eed1ae2425baddb75ca92103f87) by Aliaksandr.melas (https://sketchfab.com/alexandr.melas) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
