@@ -142,7 +142,11 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
           {windows.map((win) => (
             <Rnd
               key={win.id}
-              size={{ width: win.isMaximized ? '100%' : win.height ? win.width : 900, height: win.isMaximized ? '100%' : win.height || 600 }}
+              // ✅ THE FIX: Force exact internal pixels (1000x700) instead of '100%'
+              size={{ 
+                width: win.isMaximized ? 1000 : (win.width || 900), 
+                height: win.isMaximized ? 700 : (win.height || 600) 
+              }}
               position={{ x: win.isMaximized ? 0 : win.x, y: win.isMaximized ? 0 : win.y }}
               onDragStop={(e, d) => { if (!win.isMaximized) updateWindow(win.id, { x: d.x, y: d.y }) }}
               onResizeStop={(e, direction, ref, delta, position) => {
@@ -180,59 +184,78 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
         </div>
 
         <div style={styles.taskbar}>
-          <div style={styles.startArea}>
+          {/* ✅ LEFT SIDE: Disconnect Button + Open App Tabs */}
+          <div style={styles.taskbarLeft}>
             <button style={styles.startBtn} onClick={closeUI}>
               [ DISCONNECT ]
             </button>
+            
+            <div style={styles.taskbarApps}>
+              {windows.map((win) => (
+                <div 
+                  key={`taskbar-${win.id}`}
+                  style={{
+                    ...styles.taskbarAppBtn,
+                    backgroundColor: win.isMinimized ? 'transparent' : 'rgba(255,255,255,0.1)',
+                    borderBottom: win.isMinimized ? '2px solid transparent' : '2px solid #00ffcc'
+                  }}
+                  onClick={() => focusWindow(win.id)} // Clicking it restores/focuses the app!
+                >
+                  {React.cloneElement(win.icon, { size: 14 })}
+                  <span style={styles.taskbarAppText}>{win.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
           
-          {/* ✅ SEARCH BAR WITH LIVE RESULTS DROPDOWN */}
-          <div style={styles.searchArea}>
-            <Search size={16} color="#888" style={styles.searchIcon} />
-            <input 
-              type="text" 
-              placeholder="Search OS (e.g. LinkedIn, Resume)..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.stopPropagation()} // Stops typing keys from leaking out
-              style={styles.searchInput}
-            />
+          {/* ✅ RIGHT SIDE: Search Bar + System Tray */}
+          <div style={styles.taskbarRight}>
+            <div style={styles.searchArea}>
+              <Search size={16} color="#888" style={styles.searchIcon} />
+              <input 
+                type="text" 
+                placeholder="Search OS..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()} 
+                style={styles.searchInput}
+              />
 
-            {searchResults.length > 0 && (
-              <div style={styles.searchDropdown}>
-                {searchResults.map((item) => (
-                  <div 
-                    key={item.id} 
-                    style={styles.searchResultItem}
-                    onClick={() => {
-                      if (item.isFile) {
-                        // Open File Explorer if user clicked a file search result
-                        const explorer = desktopApps.find(a => a.id === 'file_explorer')
-                        if (explorer) handleAppClick(explorer)
-                      } else {
-                        handleAppClick(item)
-                      }
-                      setSearchQuery('')
-                    }}
-                  >
-                    {item.icon}
-                    <span>{item.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+              {searchResults.length > 0 && (
+                <div style={styles.searchDropdown}>
+                  {searchResults.map((item) => (
+                    <div 
+                      key={item.id} 
+                      style={styles.searchResultItem}
+                      onClick={() => {
+                        if (item.isFile) {
+                          const explorer = desktopApps.find(a => a.id === 'file_explorer')
+                          if (explorer) handleAppClick(explorer)
+                        } else {
+                          handleAppClick(item)
+                        }
+                        setSearchQuery('')
+                      }}
+                    >
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          <div style={styles.systemTray}>
-            <Mail 
-              size={18} 
-              title="Contact Me"
-              style={{ marginRight: '15px', cursor: 'none', transition: 'color 0.2s' }} 
-              onClick={() => window.location.href = 'mailto:pratyushqgis22@gmail.com'}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#00ffcc'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#fff'}
-            />
-            <span>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            <div style={styles.systemTray}>
+              <Mail 
+                size={18} 
+                title="Contact Me"
+                style={{ marginRight: '15px', cursor: 'none', transition: 'color 0.2s' }} 
+                onClick={() => window.location.href = 'mailto:pratyushqgis22@gmail.com'}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#00ffcc'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#fff'}
+              />
+              <span>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -287,60 +310,54 @@ const styles = {
   },
   taskbar: {
     position: 'relative',
-    height: '50px', backgroundColor: 'rgba(15, 15, 15, 0.95)', borderTop: '1px solid #333', display: 'flex', justifyContent: 'space-between',
-    alignItems: 'center', padding: '0 20px', backdropFilter: 'blur(10px)', zIndex: 100
+    height: '50px', backgroundColor: 'rgba(15, 15, 15, 0.95)', borderTop: '1px solid #333', 
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+    padding: '0 20px', gap: '20px', backdropFilter: 'blur(10px)', zIndex: 100
   },
-  startArea: { display: 'flex', alignItems: 'center', height: '100%' },
-  startBtn: { backgroundColor: '#ff2a5f', color: '#000', border: 'none', padding: '8px 16px', fontWeight: 'bold', cursor: 'none', fontFamily: 'monospace', borderRadius: '3px' },
-  
+  taskbarLeft: { 
+    display: 'flex', alignItems: 'center', gap: '15px', flex: 1, overflow: 'hidden' 
+  },
+  taskbarApps: {
+    display: 'flex', alignItems: 'center', gap: '5px', overflowX: 'auto', flex: 1
+  },
+  taskbarAppBtn: {
+    display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px',
+    borderRadius: '4px', cursor: 'none', transition: 'all 0.2s',
+    minWidth: '120px', maxWidth: '180px', border: '1px solid #333'
+  },
+  taskbarAppText: {
+    fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+  },
+  startBtn: { 
+    backgroundColor: '#ff2a5f', color: '#000', border: 'none', padding: '8px 16px', 
+    fontWeight: 'bold', cursor: 'none', fontFamily: 'monospace', borderRadius: '3px', flexShrink: 0
+  },
+  taskbarRight: {
+    display: 'flex', alignItems: 'center', gap: '20px'
+  },
   searchArea: {
-    position: 'absolute',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    display: 'flex',
-    alignItems: 'center',
-    width: '300px',
+    position: 'relative', display: 'flex', alignItems: 'center', width: '220px'
   },
   searchIcon: {
-    position: 'absolute',
-    left: '12px',
-    pointerEvents: 'none',
-    zIndex: 2
+    position: 'absolute', left: '12px', pointerEvents: 'none', zIndex: 2
   },
   searchInput: {
-    width: '100%',
-    backgroundColor: '#1a1a1a',
-    border: '1px solid #333',
-    borderRadius: '20px',
-    padding: '8px 15px 8px 35px',
-    color: '#fff',
+    width: '100%', backgroundColor: '#1a1a1a', border: '1px solid #333',
+    borderRadius: '20px', padding: '6px 15px 6px 35px', color: '#fff',
     fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-    fontSize: '0.9rem',
-    outline: 'none',
-    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)',
+    fontSize: '0.85rem', outline: 'none', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)',
     cursor: 'none' 
   },
   searchDropdown: {
-    position: 'absolute',
-    bottom: '55px',
-    left: 0,
-    width: '100%',
-    backgroundColor: '#1e1e1e',
-    border: '1px solid #333',
-    borderRadius: '8px',
-    boxShadow: '0 10px 25px rgba(0,0,0,0.8)',
-    overflow: 'hidden',
-    zIndex: 200
+    position: 'absolute', bottom: '55px', left: 0, width: '100%',
+    backgroundColor: '#1e1e1e', border: '1px solid #333', borderRadius: '8px',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.8)', overflow: 'hidden', zIndex: 200
   },
   searchResultItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '10px 15px',
-    cursor: 'none',
-    fontSize: '0.9rem',
-    borderBottom: '1px solid #2a2a2a',
-    transition: 'background 0.2s'
+    display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 15px',
+    cursor: 'none', fontSize: '0.9rem', borderBottom: '1px solid #2a2a2a', transition: 'background 0.2s'
   },
-  systemTray: { display: 'flex', alignItems: 'center', fontSize: '0.9rem', cursor: 'none' }
+  systemTray: { 
+    display: 'flex', alignItems: 'center', fontSize: '0.85rem', cursor: 'none', flexShrink: 0 
+  }
 }

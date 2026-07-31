@@ -3,7 +3,7 @@ import { Html, useGLTF } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 
-export default function InteractiveChair({ playerState, rigidBodyRef }) {
+export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpen }) {
   const [isNear, setIsNear] = useState(false)
   const [isSitting, setIsSitting] = useState(false)
   const isNearRef = useRef(false) 
@@ -22,18 +22,31 @@ export default function InteractiveChair({ playerState, rigidBodyRef }) {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      
+      // ✅ Optional but recommended: Add the input guard here too, 
+      // so if they type 'E' in the OS search bar, they don't accidentally stand up!
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
+
       if (e.code === 'KeyE' && isNearRef.current) {
-        // UPDATED: Sync to global state immediately when pressing E
         setIsSitting((prev) => {
           const nextState = !prev
           playerState.isSitting = nextState
+          
+          // ✅ 2. THE FIX: If the player is standing up (!nextState), force the OS to close!
+          if (!nextState && setIsUIOpen) {
+            setIsUIOpen(false)
+          }
+          
           return nextState
         })
       }
     }
     window.addEventListener('keydown', handleKeyDown)
+    // ✅ 3. Add setIsUIOpen to the dependency array
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [playerState]) // Added playerState as a dependency
+  }, [playerState, setIsUIOpen])
 
   useFrame(() => {
     const distX = playerState.position.x - chairX

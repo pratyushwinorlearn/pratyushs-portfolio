@@ -8,7 +8,7 @@ import CameraRig from './components/CameraRig.jsx'
 import { createPlayerState } from './utils/playerState.js'
 import InteractiveChair from './components/InteractiveChair'
 import InteractiveSofa from './components/InteractiveSofa'
-import UserCursor from './components/UserCursor.jsx' // Make sure this path is correct!
+import UserCursor from './components/UserCursor.jsx' 
 
 function Moon() {
   const moonRef = useRef()
@@ -35,7 +35,6 @@ function UIManager({ playerState, setIsUIOpen }) {
     const handleKeyDown = (e) => {
       const key = e.key.toLowerCase()
       
-      // 1. Terminal Interaction
       if (key === 'i') {
         if (playerState.isSitting && playerState.mode === 'fpp') {
           document.exitPointerLock() 
@@ -43,16 +42,13 @@ function UIManager({ playerState, setIsUIOpen }) {
         }
       }
 
-      // 2. NEW: Blocked Movement Warning
       if (['w', 'a', 's', 'd'].includes(key) && playerState.isSitting) {
         const warning = document.getElementById('warning-message')
         if (warning) {
           warning.style.display = 'block'
           
-          // Clear any existing timer so they can't bug it out by spamming W
           if (window.movementWarningTimer) clearTimeout(window.movementWarningTimer)
           
-          // Hide it again after 2 seconds
           window.movementWarningTimer = setTimeout(() => {
             warning.style.display = 'none'
           }, 2000)
@@ -66,7 +62,6 @@ function UIManager({ playerState, setIsUIOpen }) {
   useFrame(() => {
     const prompt = document.getElementById('interact-prompt')
     if (prompt) {
-      // FIXED: Added sitType check so it hides while on the sofa
       if (playerState.isSitting && playerState.sitType === 'desk') {
         prompt.style.display = 'block'
         if (playerState.mode === 'fpp') {
@@ -80,6 +75,28 @@ function UIManager({ playerState, setIsUIOpen }) {
     }
   })
 
+  return null
+}
+
+function RespawnTrigger({ rigidBodyRef, playerState }) {
+  useFrame(() => {
+    if (rigidBodyRef.current) {
+      const pos = rigidBodyRef.current.translation()
+      
+      // If player falls below Y = -20 into eternity
+      if (pos.y < -20) {
+        playerState.isSitting = false
+        playerState.sitType = null
+
+        // 🔥 Teleport safely to the center of the room, high enough to land on the floor
+        rigidBodyRef.current.setTranslation({ x: 0, y: 1, z: -4 }, true)
+        
+        // Clear all momentum
+        rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true)
+      }
+    }
+  })
   return null
 }
 
@@ -105,16 +122,12 @@ export default function App() {
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       
-      {/* ✅ THE PIXEL-PERFECT 2D CURSOR ✅ */}
-      {/* Now hides instantly if the game re-engages pointer lock (looking around) */}
       {isUIOpen && !isLocked && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
           <UserCursor name="Pratyush" color="#00ffcc" size={28} />
         </div>
       )}
 
-      {/* ✅ NEW: ESC PROMPT ✅ */}
-      {/* Shows only when the OS is open but the player is looking around */}
       {isUIOpen && isLocked && (
         <div 
           style={{
@@ -131,8 +144,6 @@ export default function App() {
         </div>
       )}
       
-
-      {/* ✅ ONLY SHOW WHEN OS IS CLOSED ✅ */}
       {!isUIOpen && (
         <div 
           id="interact-prompt" 
@@ -148,7 +159,6 @@ export default function App() {
         </div>
       )}
 
-      {/* NEW: The Movement Blocked Warning Toast */}
       <div 
         id="warning-message" 
         style={{
@@ -163,7 +173,6 @@ export default function App() {
         PRESS [ E ] TO STAND UP FIRST
       </div>
 
-      {/* The Persistent Mini-Hint */}
       {isLocked && !isUIOpen && (
         <div style={{
           position: 'absolute', bottom: '20px', right: '20px',
@@ -174,7 +183,6 @@ export default function App() {
         </div>
       )}
 
-      {/* The Full Controls Menu */}
       {!isLocked && !isUIOpen && (
         <div style={{
           position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',
@@ -210,7 +218,6 @@ export default function App() {
             }
           `}</style>
         </div>
-        
       )}
 
       <Canvas shadows camera={{ fov: 75, near: 0.1, far: 1000 }}>
@@ -226,11 +233,12 @@ export default function App() {
         <directionalLight position={[100, 50, 50]} intensity={1.5} />
 
         <Physics gravity={[0, -9.81, 0]}>
-          {/* ✅ Passed the UI states directly into the Room */}
+          <RespawnTrigger rigidBodyRef={rigidBodyRef} playerState={playerState} />
+
           <Room playerState={playerState} isUIOpen={isUIOpen} closeUI={() => setIsUIOpen(false)} />
           <Player playerState={playerState} rigidBodyRef={rigidBodyRef} colliderRef={colliderRef} />
           <CameraRig playerState={playerState} rigidBodyRef={rigidBodyRef} />
-          <InteractiveChair playerState={playerState} rigidBodyRef={rigidBodyRef} />
+          <InteractiveChair playerState={playerState} rigidBodyRef={rigidBodyRef} setIsUIOpen={setIsUIOpen} />
           <InteractiveSofa playerState={playerState} rigidBodyRef={rigidBodyRef} />
         </Physics>
       </Canvas>

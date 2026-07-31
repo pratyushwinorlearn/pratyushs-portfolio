@@ -104,8 +104,8 @@ export default function UserCursor(props) {
   const mouseX = useMotionValue(-9999)
   const mouseY = useMotionValue(-9999)
 
-  const arrowX = useSpring(mouseX, arrowSpring)
-  const arrowY = useSpring(mouseY, arrowSpring)
+  const arrowX = mouseX 
+  const arrowY = mouseY
   const labelX = useSpring(mouseX, labelSpringCfg)
   const labelY = useSpring(mouseY, labelSpringCfg)
 
