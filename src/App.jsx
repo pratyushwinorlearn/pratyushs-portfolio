@@ -132,19 +132,21 @@ export default function App() {
       )}
       
 
-      {/* Existing Interact Prompt */}
-      <div 
-        id="interact-prompt" 
-        style={{
-          position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)',
-          color: '#ff2a5f', fontFamily: 'monospace', fontSize: '1.5rem',
-          backgroundColor: 'rgba(0,0,0,0.7)', padding: '10px 20px',
-          border: '1px solid #ff2a5f', display: 'none', zIndex: 100,
-          pointerEvents: 'none' 
-        }}
-      >
-        [ I ] INTERACT WITH TERMINAL
-      </div>
+      {/* ✅ ONLY SHOW WHEN OS IS CLOSED ✅ */}
+      {!isUIOpen && (
+        <div 
+          id="interact-prompt" 
+          style={{
+            position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)',
+            color: '#ff2a5f', fontFamily: 'monospace', fontSize: '1.5rem',
+            backgroundColor: 'rgba(0,0,0,0.7)', padding: '10px 20px',
+            border: '1px solid #ff2a5f', display: 'none', zIndex: 100,
+            pointerEvents: 'none' 
+          }}
+        >
+          [ I ] INTERACT WITH TERMINAL
+        </div>
+      )}
 
       {/* NEW: The Movement Blocked Warning Toast */}
       <div 

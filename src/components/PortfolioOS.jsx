@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import { Rnd } from 'react-rnd'
-import { Folder, Terminal, MonitorPlay, Code, Briefcase, Mail, Cpu, Layout, X, Minus, Square, Search } from 'lucide-react'
-
+import { Folder, Terminal, Code, Briefcase, Mail, Search, FileText, Image as ImageIcon, X, Minus, Square, Award } from 'lucide-react'
+import AwsApp from './AwsApp'
 import GithubClone from './GithubClone'
 import LinkedInClone from './LinkedInClone'
-import UserCursor from './UserCursor'
+import FileExplorer from './FileExplorer'
+
 
 export default function PortfolioOS({ isUIOpen, closeUI }) {
   const [time, setTime] = useState(new Date())
   const [windows, setWindows] = useState([])
   const [activeZIndex, setActiveZIndex] = useState(100)
+  
+  // ✅ NEW: Search state
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
-
-  // ❌ REMOVED: if (!isUIOpen) return null 
-  // We want the screen to stay visible inside the 3D room at all times!
 
   const desktopApps = [
     { 
@@ -28,10 +29,12 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
         </div>
       )
     },
-    // { 
-    //   id: 'java_chess', name: 'Java_Chess.jar', icon: <Folder size={32} color="#4da6ff" />, 
-    //   content: <div style={{ padding: '20px' }}><h3>Eclipse Debugger</h3><p>Java chess GUI initialized.</p></div> 
-    // },
+    { 
+      id: 'aws_badges', 
+      name: 'AWS_Cloud.exe', 
+      icon: <Award size={32} color="#ff9900" />, // Make sure to import Award from lucide-react if needed
+      content: <AwsApp />
+    },
     { 
       id: 'github', name: 'GitHub', icon: <Code size={32} color="#fff" />, 
       content: <GithubClone />
@@ -40,7 +43,22 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
       id: 'linkedin', name: 'LinkedIn', icon: <Briefcase size={32} color="#0077b5" />, 
       content: <LinkedInClone />
     },
+    { 
+      id: 'file_explorer', name: 'Explorer.exe', icon: <Folder size={32} color="#ffaa00" />, 
+      content: <FileExplorer />
+    }
   ]
+
+  // ✅ NEW: Combine apps and searchable files for the search engine
+  const searchableItems = [
+    ...desktopApps,
+    { id: 'resume', name: 'Resume.pdf', icon: <FileText size={24} color="#ffaa00" />, isFile: true },
+    { id: 'schema', name: 'Architecture_Schema.png', icon: <ImageIcon size={24} color="#ff2a5f" />, isFile: true }
+  ]
+
+  const searchResults = searchQuery.trim() === '' ? [] : searchableItems.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const handleAppClick = (app) => {
     if (windows.find(w => w.id === app.id)) {
@@ -87,16 +105,6 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
     updateWindow(id, { isMinimized: true })
   }
 
-  const handleTaskbarClick = (id) => {
-    const win = windows.find(w => w.id === id)
-    const isTopMost = win.zIndex === Math.max(...windows.map(w => w.zIndex))
-    if (isTopMost && !win.isMinimized) {
-      minimizeWindow(id)
-    } else {
-      focusWindow(id)
-    }
-  }
-
   return (
     <div 
       style={styles.backdrop}
@@ -116,15 +124,12 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
         }
       `}</style>
       
-      
-
       <div 
         className="os-container"
         style={styles.osWrapper}
         onClick={(e) => e.stopPropagation()} 
       >
         <div style={styles.desktop}>
-          
           <div style={styles.iconGrid}>
             {desktopApps.map((app) => (
               <div key={app.id} style={styles.appIcon} onClick={() => handleAppClick(app)}>
@@ -137,7 +142,7 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
           {windows.map((win) => (
             <Rnd
               key={win.id}
-              size={{ width: win.isMaximized ? '100%' : win.width, height: win.isMaximized ? '100%' : win.height }}
+              size={{ width: win.isMaximized ? '100%' : win.height ? win.width : 900, height: win.isMaximized ? '100%' : win.height || 600 }}
               position={{ x: win.isMaximized ? 0 : win.x, y: win.isMaximized ? 0 : win.y }}
               onDragStop={(e, d) => { if (!win.isMaximized) updateWindow(win.id, { x: d.x, y: d.y }) }}
               onResizeStop={(e, direction, ref, delta, position) => {
@@ -167,13 +172,11 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
                   <button style={{...styles.controlBtn, ...styles.closeBtn}} onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}><X size={14} /></button>
                 </div>
               </div>
-              
               <div style={styles.windowContent}>
                 {win.content}
               </div>
             </Rnd>
           ))}
-
         </div>
 
         <div style={styles.taskbar}>
@@ -181,25 +184,43 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
             <button style={styles.startBtn} onClick={closeUI}>
               [ DISCONNECT ]
             </button>
-            <div style={styles.openAppsArea}>
-              {windows.map(win => {
-                const isTopMost = win.zIndex === Math.max(...windows.map(w => w.zIndex)) && !win.isMinimized;
-                return (
-                  <div key={win.id} style={{ ...styles.taskbarApp, backgroundColor: isTopMost ? '#333' : '#222', borderBottom: isTopMost ? '2px solid #00ffcc' : '1px solid #444' }} onClick={() => handleTaskbarClick(win.id)}>
-                    {React.cloneElement(win.icon, { size: 20 })}
-                  </div>
-                )
-              })}
-            </div>
           </div>
           
+          {/* ✅ SEARCH BAR WITH LIVE RESULTS DROPDOWN */}
           <div style={styles.searchArea}>
             <Search size={16} color="#888" style={styles.searchIcon} />
             <input 
               type="text" 
-              placeholder="Search OS..." 
+              placeholder="Search OS (e.g. LinkedIn, Resume)..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()} // Stops typing keys from leaking out
               style={styles.searchInput}
             />
+
+            {searchResults.length > 0 && (
+              <div style={styles.searchDropdown}>
+                {searchResults.map((item) => (
+                  <div 
+                    key={item.id} 
+                    style={styles.searchResultItem}
+                    onClick={() => {
+                      if (item.isFile) {
+                        // Open File Explorer if user clicked a file search result
+                        const explorer = desktopApps.find(a => a.id === 'file_explorer')
+                        if (explorer) handleAppClick(explorer)
+                      } else {
+                        handleAppClick(item)
+                      }
+                      setSearchQuery('')
+                    }}
+                  >
+                    {item.icon}
+                    <span>{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={styles.systemTray}>
@@ -221,13 +242,11 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
 
 const styles = {
   backdrop: {
-    // ✅ Updated to 100% so it fits exactly inside the 3D monitor
     position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
     zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center',
     cursor: 'none' 
   },
   osWrapper: {
-    // ✅ Updated to 100% to fill the screen seamlessly (no borders, no floating box)
     width: '100%', height: '100%', 
     display: 'flex', flexDirection: 'column',
     fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
@@ -239,10 +258,12 @@ const styles = {
     flexGrow: 1, backgroundColor: '#0a0a0a', 
     backgroundImage: 'url("/desktopwallpaper.jpg")', 
     backgroundSize: 'cover', backgroundPosition: 'center',
-    padding: '20px', position: 'relative'
+    position: 'relative',
+    overflow: 'hidden'
   },
   iconGrid: {
-    display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '20px', height: '100%', alignContent: 'flex-start'
+    display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '20px', height: '100%', alignContent: 'flex-start',
+    padding: '20px'
   },
   appIcon: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', width: '90px', padding: '10px', borderRadius: '5px',
@@ -262,20 +283,15 @@ const styles = {
     flexGrow: 1, 
     backgroundColor: '#111', 
     overflowY: 'auto',
-    cursor: 'none', 
-    '& *': {
-      cursor: 'none !important' 
-    }
+    cursor: 'none'
   },
   taskbar: {
     position: 'relative',
     height: '50px', backgroundColor: 'rgba(15, 15, 15, 0.95)', borderTop: '1px solid #333', display: 'flex', justifyContent: 'space-between',
-    alignItems: 'center', padding: '0 20px', backdropFilter: 'blur(10px)'
+    alignItems: 'center', padding: '0 20px', backdropFilter: 'blur(10px)', zIndex: 100
   },
   startArea: { display: 'flex', alignItems: 'center', height: '100%' },
   startBtn: { backgroundColor: '#ff2a5f', color: '#000', border: 'none', padding: '8px 16px', fontWeight: 'bold', cursor: 'none', fontFamily: 'monospace', borderRadius: '3px' },
-  openAppsArea: { marginLeft: '20px', display: 'flex', gap: '5px' },
-  taskbarApp: { padding: '5px 15px', borderRadius: '4px', cursor: 'none', display: 'flex', alignItems: 'center', transition: 'all 0.2s ease' },
   
   searchArea: {
     position: 'absolute',
@@ -283,12 +299,13 @@ const styles = {
     transform: 'translateX(-50%)',
     display: 'flex',
     alignItems: 'center',
-    width: '300px', 
+    width: '300px',
   },
   searchIcon: {
     position: 'absolute',
     left: '12px',
-    pointerEvents: 'none'
+    pointerEvents: 'none',
+    zIndex: 2
   },
   searchInput: {
     width: '100%',
@@ -301,9 +318,29 @@ const styles = {
     fontSize: '0.9rem',
     outline: 'none',
     boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)',
-    transition: 'border-color 0.2s ease',
     cursor: 'none' 
   },
-  
+  searchDropdown: {
+    position: 'absolute',
+    bottom: '55px',
+    left: 0,
+    width: '100%',
+    backgroundColor: '#1e1e1e',
+    border: '1px solid #333',
+    borderRadius: '8px',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.8)',
+    overflow: 'hidden',
+    zIndex: 200
+  },
+  searchResultItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '10px 15px',
+    cursor: 'none',
+    fontSize: '0.9rem',
+    borderBottom: '1px solid #2a2a2a',
+    transition: 'background 0.2s'
+  },
   systemTray: { display: 'flex', alignItems: 'center', fontSize: '0.9rem', cursor: 'none' }
 }

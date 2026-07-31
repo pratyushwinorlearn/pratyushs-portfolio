@@ -131,7 +131,7 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     let nextAction = 'Idle'
     
     if (!grounded) {
-      nextAction = 'jumping' 
+      nextAction = 'jumpingcomplete' 
     } 
     else if (keys.current.shift) {
       if (isMoving) {
