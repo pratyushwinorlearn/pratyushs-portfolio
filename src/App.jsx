@@ -7,8 +7,8 @@ import Player from './components/Player.jsx'
 import CameraRig from './components/CameraRig.jsx'
 import { createPlayerState } from './utils/playerState.js'
 import InteractiveChair from './components/InteractiveChair'
-import PortfolioOS from './components/PortfolioOS.jsx' 
 import InteractiveSofa from './components/InteractiveSofa'
+import UserCursor from './components/UserCursor.jsx' // Make sure this path is correct!
 
 function Moon() {
   const moonRef = useRef()
@@ -103,10 +103,35 @@ export default function App() {
   }, [])
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       
-      <PortfolioOS isUIOpen={isUIOpen} closeUI={() => setIsUIOpen(false)} />
+      {/* ✅ THE PIXEL-PERFECT 2D CURSOR ✅ */}
+      {/* Now hides instantly if the game re-engages pointer lock (looking around) */}
+      {isUIOpen && !isLocked && (
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
+          <UserCursor name="Pratyush" color="#00ffcc" size={28} />
+        </div>
+      )}
+
+      {/* ✅ NEW: ESC PROMPT ✅ */}
+      {/* Shows only when the OS is open but the player is looking around */}
+      {isUIOpen && isLocked && (
+        <div 
+          style={{
+            position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)',
+            color: '#00ffcc', fontFamily: 'monospace', fontSize: '1.2rem',
+            backgroundColor: 'rgba(0,0,0,0.85)', padding: '10px 20px',
+            border: '1px solid #00ffcc', borderRadius: '4px',
+            zIndex: 100, pointerEvents: 'none',
+            boxShadow: '0 0 10px rgba(0, 255, 204, 0.3)',
+            animation: 'pulse 1.5s infinite'
+          }}
+        >
+          PRESS [ ESC ] TO UNLOCK CURSOR
+        </div>
+      )}
       
+
       {/* Existing Interact Prompt */}
       <div 
         id="interact-prompt" 
@@ -183,6 +208,7 @@ export default function App() {
             }
           `}</style>
         </div>
+        
       )}
 
       <Canvas shadows camera={{ fov: 75, near: 0.1, far: 1000 }}>
@@ -198,7 +224,8 @@ export default function App() {
         <directionalLight position={[100, 50, 50]} intensity={1.5} />
 
         <Physics gravity={[0, -9.81, 0]}>
-          <Room playerState={playerState} />
+          {/* ✅ Passed the UI states directly into the Room */}
+          <Room playerState={playerState} isUIOpen={isUIOpen} closeUI={() => setIsUIOpen(false)} />
           <Player playerState={playerState} rigidBodyRef={rigidBodyRef} colliderRef={colliderRef} />
           <CameraRig playerState={playerState} rigidBodyRef={rigidBodyRef} />
           <InteractiveChair playerState={playerState} rigidBodyRef={rigidBodyRef} />

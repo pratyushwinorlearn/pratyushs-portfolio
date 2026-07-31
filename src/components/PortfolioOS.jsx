@@ -4,8 +4,6 @@ import { Folder, Terminal, MonitorPlay, Code, Briefcase, Mail, Cpu, Layout, X, M
 
 import GithubClone from './GithubClone'
 import LinkedInClone from './LinkedInClone'
-
-// NEW: Import the custom cursor!
 import UserCursor from './UserCursor'
 
 export default function PortfolioOS({ isUIOpen, closeUI }) {
@@ -18,7 +16,8 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
     return () => clearInterval(timer)
   }, [])
 
-  if (!isUIOpen) return null
+  // ❌ REMOVED: if (!isUIOpen) return null 
+  // We want the screen to stay visible inside the 3D room at all times!
 
   const desktopApps = [
     { 
@@ -29,10 +28,10 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
         </div>
       )
     },
-    //{ 
-    //  id: 'java_chess', name: 'Java_Chess.jar', icon: <Folder size={32} color="#4da6ff" />, 
-    //  content: <div style={{ padding: '20px' }}><h3>Eclipse Debugger</h3><p>Java chess GUI initialized.</p></div> 
-    //},
+    // { 
+    //   id: 'java_chess', name: 'Java_Chess.jar', icon: <Folder size={32} color="#4da6ff" />, 
+    //   content: <div style={{ padding: '20px' }}><h3>Eclipse Debugger</h3><p>Java chess GUI initialized.</p></div> 
+    // },
     { 
       id: 'github', name: 'GitHub', icon: <Code size={32} color="#fff" />, 
       content: <GithubClone />
@@ -104,8 +103,10 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
       onPointerDown={(e) => e.stopPropagation()} 
       onClick={closeUI}
     >
-      {/* --- ADD THIS STYLES BLOCK HERE --- */}
       <style>{`
+        body, html {
+          cursor: none !important;
+        }
         .os-container *, 
         .os-container a, 
         .os-container button, 
@@ -114,8 +115,8 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
           cursor: none !important;
         }
       `}</style>
-      {/* NEW: Render your name and pick a brand color! */}
-      <UserCursor name="Pratyush" color="#00ffcc" size={28} />
+      
+      
 
       <div 
         className="os-container"
@@ -220,20 +221,19 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
 
 const styles = {
   backdrop: {
-    position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',
+    // ✅ Updated to 100% so it fits exactly inside the 3D monitor
+    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
     zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    backdropFilter: 'blur(5px)',
-    cursor: 'none' // ❌ Hides the default cursor
+    cursor: 'none' 
   },
   osWrapper: {
-    width: '60vw', height: '85vh', 
+    // ✅ Updated to 100% to fill the screen seamlessly (no borders, no floating box)
+    width: '100%', height: '100%', 
     display: 'flex', flexDirection: 'column',
     fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
     color: '#fff', userSelect: 'none',
-    borderRadius: '12px', overflow: 'hidden',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.1)',
-    cursor: 'none' // ❌ Hides the default cursor
+    overflow: 'hidden',
+    cursor: 'none' 
   },
   desktop: {
     flexGrow: 1, backgroundColor: '#0a0a0a', 
@@ -246,13 +246,13 @@ const styles = {
   },
   appIcon: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', width: '90px', padding: '10px', borderRadius: '5px',
-    cursor: 'none', // ❌ Hides the default cursor
+    cursor: 'none', 
     textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
   },
   iconText: { marginTop: '8px', fontSize: '0.8rem', textAlign: 'center', wordBreak: 'break-word' },
   titleBar: {
     backgroundColor: '#2a2a2a', padding: '8px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    cursor: 'none', // ❌ Hides the default cursor
+    cursor: 'none', 
     borderBottom: '1px solid #111'
   },
   windowControls: { display: 'flex', gap: '5px' },
@@ -262,9 +262,9 @@ const styles = {
     flexGrow: 1, 
     backgroundColor: '#111', 
     overflowY: 'auto',
-    cursor: 'none', // Forces custom cursor inside all app bodies
+    cursor: 'none', 
     '& *': {
-      cursor: 'none !important' // Forces custom cursor on all children elements (links, buttons, etc)
+      cursor: 'none !important' 
     }
   },
   taskbar: {
@@ -302,7 +302,7 @@ const styles = {
     outline: 'none',
     boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)',
     transition: 'border-color 0.2s ease',
-    cursor: 'none' // ❌ Hides the default text cursor
+    cursor: 'none' 
   },
   
   systemTray: { display: 'flex', alignItems: 'center', fontSize: '0.9rem', cursor: 'none' }

@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Portfolio — Phase 1</title>
     <style>
-      html, body, #root { margin: 0; height: 100%; background: #000; overflow: hidden; }
+      /* ✅ Removed #root from this line so it doesn't get overflow: hidden */
+      html, body { margin: 0; height: 100%; background: #000; overflow: clip; }
+      
+      /* ✅ Gave #root its own clean rule */
+      #root { margin: 0; height: 100%; }
+
       #hint {
         position: fixed;
         inset: 0;
