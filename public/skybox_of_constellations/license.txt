@@ -1,0 +1,11 @@
+Model Information:
+* title:	skybox of constellations
+* source:	https://sketchfab.com/3d-models/skybox-of-constellations-398b3166a9dc4854b5343d7f477bb7ed
+* author:	tiunov.se (https://sketchfab.com/tiunov.se)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "skybox of constellations" (https://sketchfab.com/3d-models/skybox-of-constellations-398b3166a9dc4854b5343d7f477bb7ed) by tiunov.se (https://sketchfab.com/tiunov.se) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

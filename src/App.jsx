@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react' 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
-import { useTexture, Environment, Stars } from '@react-three/drei' 
+import { useTexture, Environment, useGLTF, Line } from '@react-three/drei' 
 import Room from './components/Room.jsx'
 import Player from './components/Player.jsx'
 import CameraRig from './components/CameraRig.jsx'
@@ -28,6 +28,12 @@ function Moon() {
       </mesh>
     </group>
   )
+}
+
+function SkyboxModel() {
+  const { scene } = useGLTF('/skybox_of_constellations/scene.gltf')
+  // Adjust the scale array [x, y, z] if the skybox appears too small or too large in your scene
+  return <primitive object={scene} scale={[150, 150, 150]} position={[0, 0, 0]} />
 }
 
 function UIManager({ playerState, setIsUIOpen }) {
@@ -83,15 +89,12 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
     if (rigidBodyRef.current) {
       const pos = rigidBodyRef.current.translation()
       
-      // If player falls below Y = -20 into eternity
       if (pos.y < -20) {
         playerState.isSitting = false
         playerState.sitType = null
 
-        // 🔥 Teleport safely to the center of the room, high enough to land on the floor
         rigidBodyRef.current.setTranslation({ x: 0, y: 1, z: -4 }, true)
         
-        // Clear all momentum
         rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
         rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true)
       }
@@ -225,7 +228,8 @@ export default function App() {
         
         <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} />
         
-        <Stars radius={300} depth={60} count={6000} factor={4} saturation={0} fade speed={1} />
+        {/* ✨ GLTF SKYBOX MODEL REPLACING PROCEDURE STARS ✨ */}
+        <SkyboxModel />
         <Moon />
         
         <ambientLight intensity={1.5} />
@@ -247,3 +251,4 @@ export default function App() {
 }
 
 useTexture.preload('/moon/textures/Material.002_diffuse.jpeg')
+useGLTF.preload('/skybox_of_constellations/scene.gltf')
