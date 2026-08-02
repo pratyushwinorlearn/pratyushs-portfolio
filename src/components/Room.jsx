@@ -14,7 +14,15 @@ export default function Room({ playerState, isUIOpen, closeUI, ...props }) {
   return (
     <>
       <RigidBody type="fixed" colliders="trimesh">
-        <group {...props} dispose={null}>
+        {/* 👇 ADDED THE CLICK LOGGER TO THE ENTIRE ROOM GROUP 👇 */}
+        <group 
+          {...props} 
+          dispose={null}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            console.log(`📍 WALL/FLOOR COORDINATES: [${e.point.x.toFixed(3)}, ${e.point.y.toFixed(3)}, ${e.point.z.toFixed(3)}]`);
+          }}
+        >
           <mesh geometry={nodes.Object_4.geometry} material={materials.ControlRoom_Ceiling_P1_02_mobile_0_Baked} position={[23.981, -4.941, 8.461]} scale={0.01} />
           <mesh geometry={nodes.Object_6.geometry} material={materials.ControlRoom_Floor_P1_02_mobile_0_Baked} position={[23.981, -4.941, 8.461]} scale={0.01} />
           <mesh geometry={nodes.Object_8.geometry} material={materials.ControlRoom_FloorTrim_4_P1_01_mobile_0_Baked} position={[23.981, -4.941, 8.461]} scale={0.01} />
@@ -87,9 +95,6 @@ export default function Room({ playerState, isUIOpen, closeUI, ...props }) {
 
       {/* ✅ THE LIVE OS (Cleaned up and hidden until interacted with) ✅ */}
       <group position={[3.571, 1.371, -4.095]} rotation={[0, -0.02, 0]}>
-        
-        {/* 🛑 Red Debug Sphere has been deleted! */}
-
         <Html
           transform
           rotation={[0, -Math.PI/2, 0]} 
@@ -100,15 +105,10 @@ export default function Room({ playerState, isUIOpen, closeUI, ...props }) {
             position: 'relative', 
             width: '1000px', 
             height: '750px',
-            
-            // 👇 CHANGED: Opacity is now 0 when closed, making it completely invisible
             opacity: isUIOpen ? 1 : 0, 
-            
             pointerEvents: isUIOpen ? 'auto' : 'none', 
             backgroundColor: isUIOpen ? '#0a0a0a' : 'transparent',
-            transition: 'opacity 0.3s ease', // Adds a smooth fade-in effect
-            
-            // 🛑 Neon pink border has been deleted!
+            transition: 'opacity 0.3s ease',
           }}>
             <PortfolioOS isUIOpen={true} closeUI={closeUI} /> 
           </div>

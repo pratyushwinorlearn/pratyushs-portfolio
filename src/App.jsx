@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react' 
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Physics } from '@react-three/rapier'
-import { useTexture, Environment, useGLTF, Line } from '@react-three/drei' 
+import { Physics, RigidBody } from '@react-three/rapier'
+import { useTexture, Environment, useGLTF, Line, Text } from '@react-three/drei' 
 import Room from './components/Room.jsx'
 import Player from './components/Player.jsx'
 import CameraRig from './components/CameraRig.jsx'
@@ -32,8 +32,51 @@ function Moon() {
 
 function SkyboxModel() {
   const { scene } = useGLTF('/skybox_of_constellations/scene.gltf')
-  // Adjust the scale array [x, y, z] if the skybox appears too small or too large in your scene
   return <primitive object={scene} scale={[150, 150, 150]} position={[0, 0, 0]} />
+}
+
+// 📌 THE CREDITS WHITEBOARD
+function CreditsWhiteboard() {
+  const { scene } = useGLTF('/whiteboard/scene.gltf')
+
+  return (
+    <RigidBody type="fixed" colliders="hull">
+      
+      {/* 1. THE BOARD (Scaled down independently) */}
+      <primitive 
+        object={scene} 
+        position={[-0.289, 1.805, -2.616]} 
+        rotation={[0, -0.3, 0]} 
+        scale={0.003} 
+      />
+
+      {/* 2. THE TEXT (Un-grouped so it is unaffected by the tiny scale!) */}
+      <Text
+        // Same X and Y, but Z is -2.5 (safely pulled out in front of the board)
+        position={[-0.289, 1.805, -2.645]} 
+        rotation={[0, 3.15, 0]} 
+        
+        fontSize={0.03} // Normal size now!
+        color="#030303" // Neon red to test visibility
+        font="/fonts/PasseroOne-Regular.ttf" 
+        
+        lineHeight={1.4}
+        textAlign="center"
+        anchorX="center"
+        anchorY="middle"
+      >
+        CREDITS{"\n\n"}
+          3D ASSETS (Sketchfab):{"\n\n"}
+          Control Room by amogusstrikesback2{"\n"}
+          Skybox of Constellations by tiunov.se{"\n"}
+          Moon by Akshat{"\n"}
+          Whiteboard by Reflex_Entertainment{"\n"}
+          Old Chair by KZNYKN{"\n\n"}
+          Designed & Developed by Shekhar Pratyush{"\n"}
+      </Text>
+
+    </RigidBody>
+  )
 }
 
 function UIManager({ playerState, setIsUIOpen }) {
@@ -79,6 +122,22 @@ function UIManager({ playerState, setIsUIOpen }) {
         prompt.style.display = 'none' 
       }
     }
+
+    // 🔥 NEW: Welcome Objective Hint Logic
+    const welcomeHint = document.getElementById('welcome-hint')
+    if (welcomeHint) {
+      // If the player successfully sits down, permanently mark the objective as complete
+      if (playerState.isSitting) {
+        playerState.hasSatDown = true
+      }
+
+      // Show the hint ONLY if the player hasn't sat down yet AND they are actively in the game (mouse locked)
+      if (!playerState.hasSatDown && document.pointerLockElement) {
+        welcomeHint.style.display = 'block'
+      } else {
+        welcomeHint.style.display = 'none'
+      }
+    }
   })
 
   return null
@@ -110,6 +169,8 @@ export default function App() {
   
   const [isUIOpen, setIsUIOpen] = useState(false)
   const [isLocked, setIsLocked] = useState(false)
+  
+  const [showCameraHint, setShowCameraHint] = useState(false)
 
   useEffect(() => {
     const oldHint = document.getElementById('hint')
@@ -122,12 +183,43 @@ export default function App() {
     return () => document.removeEventListener('pointerlockchange', onChange)
   }, [])
 
+  useEffect(() => {
+    let timer;
+    if (isUIOpen && !isLocked) {
+      setShowCameraHint(true) 
+      timer = setTimeout(() => {
+        setShowCameraHint(false) 
+      }, 10000)
+    } else {
+      setShowCameraHint(false) 
+    }
+
+    return () => clearTimeout(timer)
+  }, [isUIOpen, isLocked])
+
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       
       {isUIOpen && !isLocked && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
           <UserCursor name="Pratyush" color="#00ffcc" size={28} />
+        </div>
+      )}
+
+      {isUIOpen && !isLocked && showCameraHint && (
+        <div 
+          style={{
+            position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)',
+            color: '#ff2a5f', fontFamily: 'monospace', fontSize: '1rem',
+            backgroundColor: 'rgba(0,0,0,0.85)', padding: '10px 20px',
+            border: '1px solid #ff2a5f', borderRadius: '4px',
+            zIndex: 100, pointerEvents: 'none',
+            boxShadow: '0 0 10px rgba(255, 42, 95, 0.3)',
+            animation: 'pulse 2s infinite', textAlign: 'center'
+          }}
+        >
+          Click outside the screen to move the camera <br/>
+          <span style={{ fontSize: '0.85rem', color: '#888' }}>Press [ ESC ] anytime to unlock cursor</span>
         </div>
       )}
 
@@ -161,6 +253,22 @@ export default function App() {
           [ I ] INTERACT WITH TERMINAL
         </div>
       )}
+
+      {/* 🔥 NEW: Glowing Welcome Objective Hovering Message */}
+      <div 
+        id="welcome-hint" 
+        style={{
+          position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)',
+          color: '#00ffcc', fontFamily: 'monospace', fontSize: '1.2rem',
+          backgroundColor: 'rgba(0,0,0,0.85)', padding: '12px 24px',
+          border: '1px solid #00ffcc', borderRadius: '4px',
+          display: 'none', zIndex: 100, pointerEvents: 'none',
+          boxShadow: '0 0 15px rgba(0, 255, 204, 0.4)',
+          animation: 'pulse 2s infinite'
+        }}
+      >
+        OBJECTIVE: Approach the main desk and press [ E ] to sit.
+      </div>
 
       <div 
         id="warning-message" 
@@ -228,7 +336,6 @@ export default function App() {
         
         <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} />
         
-        {/* ✨ GLTF SKYBOX MODEL REPLACING PROCEDURE STARS ✨ */}
         <SkyboxModel />
         <Moon />
         
@@ -238,6 +345,8 @@ export default function App() {
 
         <Physics gravity={[0, -9.81, 0]}>
           <RespawnTrigger rigidBodyRef={rigidBodyRef} playerState={playerState} />
+
+          <CreditsWhiteboard />
 
           <Room playerState={playerState} isUIOpen={isUIOpen} closeUI={() => setIsUIOpen(false)} />
           <Player playerState={playerState} rigidBodyRef={rigidBodyRef} colliderRef={colliderRef} />
@@ -252,3 +361,4 @@ export default function App() {
 
 useTexture.preload('/moon/textures/Material.002_diffuse.jpeg')
 useGLTF.preload('/skybox_of_constellations/scene.gltf')
+useGLTF.preload('/whiteboard/scene.gltf')
