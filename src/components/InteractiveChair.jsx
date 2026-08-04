@@ -6,25 +6,25 @@ import { useFrame } from '@react-three/fiber'
 export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpen }) {
   const [isNear, setIsNear] = useState(false)
   const [isSitting, setIsSitting] = useState(false)
+  
+  // 🚨 NEW STATE: Keeps the chair non-solid temporarily when you stand up
+  const [justStoodUp, setJustStoodUp] = useState(false)
+  
   const isNearRef = useRef(false) 
 
-  // 1. CHAIR WORLD POSITION (Where the physical chair stands in the room)
+  // 1. CHAIR WORLD POSITION
   const chairX = 2.7   
   const chairZ = -4.1
-  const triggerRadius = 1.4
+  const triggerRadius = 1
 
-  // 2. CHARACTER SITTING OFFSETS (Tweak these to fix overlapping/clipping)
+  // 2. CHARACTER SITTING OFFSETS
   const playerSitOffsetX = 0.1
   const playerSitOffsetZ = 0.01
 
-  // Load the chair model using your exact folder path inside public/
   const { scene } = useGLTF('/chair/scene.gltf')
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      
-      // ✅ Optional but recommended: Add the input guard here too, 
-      // so if they type 'E' in the OS search bar, they don't accidentally stand up!
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
         return;
       }
@@ -34,9 +34,24 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
           const nextState = !prev
           playerState.isSitting = nextState
           
-          // ✅ 2. THE FIX: If the player is standing up (!nextState), force the OS to close!
-          if (!nextState && setIsUIOpen) {
-            setIsUIOpen(false)
+          if (!nextState) {
+            // 🧍 STANDING UP:
+            if (setIsUIOpen) setIsUIOpen(false)
+            
+            // Activate the "ghost" phase so you don't get stuck, no teleporting!
+            setJustStoodUp(true)
+          } else {
+            // 🪑 SITTING DOWN:
+            setJustStoodUp(false) // Reset just in case
+            
+            if (rigidBodyRef.current) {
+              playerState.sitType = 'desk'
+              rigidBodyRef.current.setNextKinematicTranslation({
+                x: chairX + playerSitOffsetX,
+                y: 1.0,
+                z: chairZ + playerSitOffsetZ
+              })
+            }
           }
           
           return nextState
@@ -44,9 +59,8 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
       }
     }
     window.addEventListener('keydown', handleKeyDown)
-    // ✅ 3. Add setIsUIOpen to the dependency array
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [playerState, setIsUIOpen])
+  }, [playerState, setIsUIOpen, rigidBodyRef])
 
   useFrame(() => {
     const distX = playerState.position.x - chairX
@@ -57,35 +71,33 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
     if (closeEnough !== isNearRef.current) {
       isNearRef.current = closeEnough
       setIsNear(closeEnough)
+      
+      // 🚨 THE RESET: Once you walk away from the chair, it becomes solid again!
+      if (!closeEnough) {
+        setJustStoodUp(false)
+      }
     }
 
-    // UPDATED: Deleted the conflicting line and added the sitType flag!
-    if (isSitting && rigidBodyRef.current) {
+    if (isSitting) {
       playerState.isSitting = true 
-      playerState.sitType = 'desk' // <-- THIS TELLS PLAYER.JSX TO USE THE TYPING ANIMATION
-      
-      // Snaps the player to the chair position plus the tuning offsets
-      rigidBodyRef.current.setNextKinematicTranslation({
-        x: chairX + playerSitOffsetX,
-        y: 1.0,  
-        z: chairZ + playerSitOffsetZ
-      })
+      playerState.sitType = 'desk' 
     }
   })
 
   return (
     <group position={[chairX, 0, chairZ]}>
-      {/* SOLID PHYSICS COLLIDER: Blocks the player normally, disables when sitting */}
+      {/* 🚨 THE PHYSICS BLOCK IS BACK 🚨 */}
       <RigidBody type="fixed" colliders={false}>
+        {/* 
+          Disabled ONLY when you are actively sitting OR in the "Ghost Phase" 
+          walking away from the chair. Otherwise, it is a solid box!
+        */}
         <CuboidCollider 
           args={[0.35, 0.5, 0.35]} 
-          disabled={isSitting} 
+          disabled={isSitting || justStoodUp} 
         />
       </RigidBody>
 
-      {/* 
-        Render the 3D chair model. 
-      */}
       <primitive 
         object={scene} 
         scale={0.011} 

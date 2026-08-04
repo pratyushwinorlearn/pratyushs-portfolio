@@ -30,7 +30,14 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     controller.enableSnapToGround(0.4)
     controller.setSlideEnabled(true)
     controllerRef.current = controller
-    return () => world.removeCharacterController(controller)
+    return () => {
+  try {
+    world.removeCharacterController(controller)
+  } catch (err) {
+    // Same Rapier World teardown race as CameraRig.jsx's raycast —
+    // harmless to skip if the World is already mid-teardown here.
+  }
+}
   }, [world])
 
   useEffect(() => {
