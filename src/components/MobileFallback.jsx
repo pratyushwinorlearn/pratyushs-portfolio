@@ -31,16 +31,8 @@ export default function MobileFallback() {
           50% { opacity: 0; }
         }
         @keyframes ledPulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 8px #ff2a5f; }
-          50% { opacity: 0.4; box-shadow: 0 0 2px #ff2a5f; }
-        }
-        .scanlines {
-          position: absolute;
-          top: 0; left: 0; width: 100%; height: 100%;
-          background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
-          background-size: 100% 3px;
-          pointer-events: none;
-          z-index: 10;
+          0%, 100% { opacity: 1; box-shadow: 0 0 6px #00ffcc; }
+          50% { opacity: 0.3; box-shadow: 0 0 2px #00ffcc; }
         }
         .cursor {
           display: inline-block;
@@ -54,54 +46,59 @@ export default function MobileFallback() {
         }
       `}</style>
 
-      {/* Hardware Container holding the circuit layout */}
+      {/* Circuit Workspace Container */}
       <div style={styles.circuitWrapper}>
         
-        {/* 🔌 ESP32 / Microcontroller Board */}
+        {/* 🔲 REALISTIC ESP32 MODULE */}
         <div style={styles.espBoard}>
-          <div style={styles.espChip}>ESP32-WROOM</div>
-          <div style={styles.antenna}></div>
+          {/* Silver Shielding Can */}
+          <div style={styles.shieldCan}>
+            <div style={styles.shieldText}>ESP-32</div>
+            <div style={styles.wifiLogo}>WiFi · BT</div>
+          </div>
+          {/* Push buttons & Micro-USB */}
+          <div style={styles.bootButton}></div>
+          <div style={styles.enButton}></div>
           <div style={styles.usbPort}></div>
-          {/* Pins on ESP32 */}
-          <div style={styles.espPinsLeft}></div>
-          <div style={styles.espPinsRight}></div>
+          {/* Yellow Pin Headers */}
+          <div style={styles.pinHeaderLeft}></div>
+          <div style={styles.pinHeaderRight}></div>
+          {/* Power Indicator LED */}
+          <div style={styles.powerLed}></div>
         </div>
 
-        {/* ⚡ Jumper Wires (SVG Curves connecting ESP32 to OLED) */}
-        <svg style={styles.wireSvg} width="320" height="300">
+        {/* ⚡ REALISTIC JUMPER WIRES (Direct I2C & Power Connections) */}
+        <svg style={styles.wireSvg} width="320" height="340">
           {/* GND Wire (Black) */}
-          <path d="M 90 85 C 90 130, 65 140, 65 175" stroke="#111" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          <path d="M 100 85 C 100 130, 80 140, 80 195" stroke="#222" strokeWidth="3.5" fill="none" strokeLinecap="round" />
           {/* VCC Wire (Red) */}
-          <path d="M 105 85 C 105 140, 85 140, 85 175" stroke="#ff2a5f" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          <path d="M 118 85 C 118 135, 105 140, 103 195" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
           {/* SCL Wire (Yellow) */}
-          <path d="M 215 85 C 215 130, 230 140, 235 175" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          <path d="M 195 85 C 195 130, 210 140, 215 195" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
           {/* SDA Wire (Blue) */}
-          <path d="M 230 85 C 230 145, 250 145, 255 175" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          <path d="M 212 85 C 212 145, 235 145, 238 195" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
         </svg>
 
-        {/* 🔋 Status LED */}
-        <div style={styles.statusLed}></div>
-
-        {/* 🟫 Resistor Component */}
-        <div style={styles.resistor}>
-          <div style={{...styles.band, backgroundColor: '#b5651d', left: '6px'}}></div>
-          <div style={{...styles.band, backgroundColor: '#000', left: '12px'}}></div>
-          <div style={{...styles.band, backgroundColor: '#ff0000', left: '18px'}}></div>
-          <div style={{...styles.band, backgroundColor: '#ffd700', left: '24px'}}></div>
+        {/* 🔌 Black Header Socket Block connecting to OLED pins */}
+        <div style={styles.headerSocket}>
+          <div style={styles.socketHoles}></div>
         </div>
 
-        {/* 🖥️ OLED Display Module */}
+        {/* 🖥️ REALISTIC BLUE OLED MODULE */}
         <div style={styles.oledModule}>
-          <div style={styles.pinsContainer}>
-            {[1,2,3,4].map(i => <div key={i} style={styles.pin} />)}
-          </div>
-          <div style={{...styles.pinLabel, left: '18px'}}>GND</div>
-          <div style={{...styles.pinLabel, left: '40px'}}>VCC</div>
-          <div style={{...styles.pinLabel, left: '62px'}}>SCL</div>
-          <div style={{...styles.pinLabel, left: '85px'}}>SDA</div>
+          {/* Mounting Corners with silver rings */}
+          <div style={{...styles.mountHole, top: '8px', left: '8px'}}></div>
+          <div style={{...styles.mountHole, top: '8px', right: '8px'}}></div>
+          
+          {/* Pin Labels on PCB */}
+          <div style={styles.oledPinLabels}>GND &nbsp; VCC &nbsp; SCL &nbsp; SDA</div>
 
+          {/* Screen Glass Area */}
           <div style={styles.screen}>
-            <div className="scanlines"></div>
+            {/* Ribbon Cable Graphic at bottom of glass */}
+            <div style={styles.ribbonCable}></div>
+            <div style={styles.chipOnGlass}>283</div>
+
             <div style={styles.textContent}>
               {text}
               <span className="cursor"></span>
@@ -118,11 +115,11 @@ const styles = {
   breadboardBg: {
     width: '100vw', 
     height: '100vh', 
-    backgroundColor: '#f0f0f0', 
+    backgroundColor: '#f4f4f4', 
     display: 'flex', 
     justifyContent: 'center', 
     alignItems: 'center',
-    backgroundImage: 'radial-gradient(#b5b5b5 2px, transparent 2px)',
+    backgroundImage: 'radial-gradient(#b0b0b0 2px, transparent 2px)',
     backgroundSize: '20px 20px',
     overflow: 'hidden',
     position: 'relative'
@@ -130,69 +127,110 @@ const styles = {
   circuitWrapper: {
     position: 'relative',
     width: '320px',
-    height: '420px',
+    height: '450px',
     display: 'flex',
     flexDirection: 'column',
-    alignItem: 'center'
+    alignItems: 'center'
   },
   espBoard: {
     position: 'absolute',
     top: '10px',
-    left: '60px',
-    width: '200px',
+    left: '45px',
+    width: '230px',
     height: '75px',
-    backgroundColor: '#1b3b2b', // Classic dev board green
+    backgroundColor: '#121212', // Matte black PCB
     borderRadius: '4px',
-    border: '1px solid #112217',
-    boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+    border: '1px solid #282828',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  espChip: {
-    backgroundColor: '#111',
-    color: '#aaa',
-    fontSize: '9px',
-    fontFamily: 'monospace',
-    padding: '12px 18px',
-    borderRadius: '2px',
-    border: '1px solid #333'
-  },
-  antenna: {
+  shieldCan: {
     position: 'absolute',
-    top: '4px',
-    left: '12px',
-    width: '18px',
-    height: '12px',
-    backgroundColor: '#d4af37',
-    borderRadius: '2px'
+    top: '10px',
+    left: '45px',
+    width: '95px',
+    height: '52px',
+    backgroundColor: '#d8d8d8', // Brushed silver shield
+    borderRadius: '2px',
+    border: '1px solid #999',
+    boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.2)',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  shieldText: {
+    fontFamily: 'monospace',
+    fontSize: '11px',
+    fontWeight: 'bold',
+    color: '#333',
+    letterSpacing: '1px'
+  },
+  wifiLogo: {
+    fontSize: '7px',
+    fontFamily: 'sans-serif',
+    color: '#555',
+    marginTop: '2px'
+  },
+  bootButton: {
+    position: 'absolute',
+    bottom: '8px',
+    right: '35px',
+    width: '7px',
+    height: '7px',
+    backgroundColor: '#333',
+    borderRadius: '50%',
+    border: '1px solid #555'
+  },
+  enButton: {
+    position: 'absolute',
+    bottom: '22px',
+    right: '35px',
+    width: '7px',
+    height: '7px',
+    backgroundColor: '#333',
+    borderRadius: '50%',
+    border: '1px solid #555'
   },
   usbPort: {
     position: 'absolute',
-    bottom: '-4px',
-    left: '85px',
-    width: '30px',
-    height: '8px',
-    backgroundColor: '#ccc',
-    borderRadius: '2px'
+    right: '-6px',
+    top: '25px',
+    width: '14px',
+    height: '24px',
+    backgroundColor: '#c0c0c0',
+    borderRadius: '2px',
+    border: '1px solid #777'
   },
-  espPinsLeft: {
+  pinHeaderLeft: {
     position: 'absolute',
-    left: '-3px',
-    top: '10px',
-    bottom: '10px',
-    width: '4px',
-    backgroundColor: '#ffd700',
-    boxShadow: 'inset 0 0 2px rgba(0,0,0,0.5)'
+    left: '-4px',
+    top: '6px',
+    bottom: '6px',
+    width: '5px',
+    backgroundColor: '#ffd700', // Gold pins
+    borderRadius: '1px'
   },
-  espPinsRight: {
+  pinHeaderRight: {
     position: 'absolute',
-    right: '-3px',
-    top: '10px',
-    bottom: '10px',
-    width: '4px',
+    right: '-4px',
+    top: '6px',
+    bottom: '6px',
+    width: '5px',
     backgroundColor: '#ffd700',
-    boxShadow: 'inset 0 0 2px rgba(0,0,0,0.5)'
+    borderRadius: '1px'
+  },
+  powerLed: {
+    position: 'absolute',
+    top: '12px',
+    right: '18px',
+    width: '4px',
+    height: '4px',
+    backgroundColor: '#00ffcc',
+    borderRadius: '50%',
+    animation: 'ledPulse 1.5s infinite ease-in-out'
   },
   wireSvg: {
     position: 'absolute',
@@ -201,88 +239,104 @@ const styles = {
     pointerEvents: 'none',
     zIndex: 5
   },
-  statusLed: {
+  headerSocket: {
     position: 'absolute',
-    top: '140px',
-    left: '180px',
-    width: '8px',
-    height: '8px',
-    backgroundColor: '#ff2a5f',
-    borderRadius: '50%',
-    animation: 'ledPulse 1.5s infinite ease-in-out',
-    zIndex: 6
+    top: '185px',
+    left: '95px',
+    width: '130px',
+    height: '14px',
+    backgroundColor: '#1a1a1a',
+    borderRadius: '2px',
+    border: '1px solid #000',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+    zIndex: 8
   },
-  resistor: {
+  socketHoles: {
     position: 'absolute',
-    top: '135px',
-    left: '110px',
-    width: '35px',
-    height: '10px',
-    backgroundColor: '#e6ccb2',
-    borderRadius: '5px',
-    border: '1px solid #b5838d',
-    zIndex: 6,
-    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-  },
-  band: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: '3px'
+    top: '3px',
+    left: '8px',
+    right: '8px',
+    height: '6px',
+    backgroundColor: '#0a0a0a',
+    borderRadius: '1px'
   },
   oledModule: {
     position: 'absolute',
-    top: '175px',
-    left: '30px',
-    padding: '18px 12px 12px 12px', 
-    backgroundColor: '#121218', 
-    borderRadius: '6px', 
-    boxShadow: '0 15px 35px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1)', 
-    border: '1px solid #000',
+    top: '195px',
+    left: '35px',
+    width: '250px',
+    height: '160px',
+    backgroundColor: '#1b3b6f', // Authentic blue PCB board color
+    borderRadius: '8px', 
+    boxShadow: '0 15px 35px rgba(0,0,0,0.35)', 
+    border: '1px solid #0d2347',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingTop: '22px',
     zIndex: 10
   },
-  pinsContainer: {
+  mountHole: {
     position: 'absolute',
-    top: '-12px',
-    left: '20px',
-    display: 'flex',
-    gap: '12px'
+    width: '12px',
+    height: '12px',
+    borderRadius: '50%',
+    border: '2px solid #silver',
+    backgroundColor: '#dcdcdc',
+    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)'
   },
-  pin: {
-    width: '5px',
-    height: '16px',
-    backgroundColor: '#c0c0c0',
-    border: '1px solid #666',
-    borderBottom: 'none'
-  },
-  pinLabel: {
+  oledPinLabels: {
     position: 'absolute',
-    top: '4px',
-    color: '#777',
-    fontSize: '7px',
+    top: '5px',
+    color: '#d0d0d0',
+    fontSize: '8px',
     fontFamily: 'monospace',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    letterSpacing: '0.5px'
   },
   screen: {
-    width: '235px', 
+    width: '220px', 
     height: '115px', 
-    backgroundColor: '#00050a', 
-    border: '3px solid #08080c', 
+    backgroundColor: '#02050a', // Deep OLED background
+    border: '2px solid #081224', 
     borderRadius: '2px', 
-    padding: '10px', 
+    padding: '8px', 
     position: 'relative', 
     overflow: 'hidden',
-    boxShadow: 'inset 0 0 12px rgba(0,255,204,0.15)'
+    boxShadow: 'inset 0 0 10px rgba(0,255,204,0.1)'
+  },
+  ribbonCable: {
+    position: 'absolute',
+    bottom: 0,
+    left: '70px',
+    width: '80px',
+    height: '18px',
+    backgroundColor: '#111',
+    borderTop: '2px solid #222',
+    backgroundImage: 'repeating-linear-gradient(45deg, #111, #111 2px, #1a1a1a 2px, #1a1a1a 4px)',
+    zIndex: 3
+  },
+  chipOnGlass: {
+    position: 'absolute',
+    bottom: '4px',
+    left: '12px',
+    backgroundColor: '#111',
+    color: '#777',
+    fontSize: '6px',
+    padding: '1px 3px',
+    fontFamily: 'monospace',
+    border: '1px solid #333',
+    zIndex: 3
   },
   textContent: {
     color: '#00ffcc', 
     fontFamily: '"Courier New", Courier, monospace', 
-    fontSize: '0.85rem', // Smaller font so all 3 lines fit perfectly
+    fontSize: '0.8rem', 
     fontWeight: 'bold',
     whiteSpace: 'pre-wrap', 
     textShadow: '0 0 5px rgba(0, 255, 204, 0.7), 0 0 2px rgba(0, 255, 204, 0.4)', 
     zIndex: 2, 
     position: 'relative',
-    lineHeight: '1.35'
+    lineHeight: '1.3'
   }
 };
