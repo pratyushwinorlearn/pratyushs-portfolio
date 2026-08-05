@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 export default function MobileFallback() {
   const [text, setText] = useState('');
   
-  const fullText = "> ERR_RESOLUTION\n> MOBILE DEVICE DETECTED.";
+  const fullText = "> ERR_RESOLUTION\n> MOBILE DEVICE DETECTED.\n> PLEASE OPEN ON PC.";
 
   useEffect(() => {
     let currentIndex = 0;
@@ -30,48 +30,41 @@ export default function MobileFallback() {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
         }
-        @keyframes tRexJump {
-          0%, 35%, 100% { bottom: 4px; }
-          42%, 52% { bottom: 32px; }
+        @keyframes catWalk {
+          0% { transform: translateX(0px) scaleX(1); }
+          48% { transform: translateX(175px) scaleX(1); }
+          50% { transform: translateX(175px) scaleX(-1); }
+          98% { transform: translateX(0px) scaleX(-1); }
+          100% { transform: translateX(0px) scaleX(1); }
         }
-        @keyframes cactusMove {
-          0% { right: -20px; }
-          100% { right: 230px; }
+        @keyframes catBounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
         }
-        @keyframes groundScroll {
-          0% { background-position: 0 0; }
-          100% { background-position: -20px 0; }
+        @keyframes tailWag {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(-15deg); }
         }
         .cursor {
           display: inline-block;
-          width: 6px;
-          height: 0.85rem;
+          width: 7px;
+          height: 0.95rem;
           background-color: #00ffcc;
           vertical-align: middle;
           margin-left: 2px;
           animation: blink 1s step-end infinite;
           box-shadow: 0 0 4px #00ffcc;
         }
-        .t-rex-runner {
-          position: absolute;
-          left: 20px;
-          animation: tRexJump 1.6s cubic-bezier(0.3, 0, 0.7, 1) infinite;
-          image-rendering: pixelated;
+        .cat-walker {
+          animation: catWalk 7s ease-in-out infinite;
         }
-        .cactus-obstacle {
-          position: absolute;
-          bottom: 4px;
-          animation: cactusMove 1.6s linear infinite;
-          image-rendering: pixelated;
+        .pixel-cat {
+          animation: catBounce 0.35s ease-in-out infinite;
+          display: inline-block;
         }
-        .pixel-ground {
-          position: absolute;
-          bottom: 2px;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background: repeating-linear-gradient(90deg, #00ffcc, #00ffcc 4px, transparent 4px, transparent 8px);
-          animation: groundScroll 0.4s linear infinite;
+        .cat-tail {
+          transform-origin: bottom left;
+          animation: tailWag 0.6s ease-in-out infinite;
         }
       `}</style>
 
@@ -89,13 +82,13 @@ export default function MobileFallback() {
 
         {/* ⚡ REALISTIC JUMPER WIRES CONNECTING ESP32 TO OLED */}
         <svg style={styles.wireSvg} width="320" height="480">
-          {/* GND Wire (Black) - from left side pin down to OLED GND */}
+          {/* GND Wire (Black) */}
           <path d="M 90 230 C 80 270, 70 280, 75 325" stroke="#111" strokeWidth="3" fill="none" strokeLinecap="round" />
-          {/* VCC Wire (Red) - from top right 3V3 pin down to OLED VCC */}
+          {/* VCC Wire (Red) */}
           <path d="M 230 75 C 250 180, 230 250, 105 325" stroke="#d90429" strokeWidth="3" fill="none" strokeLinecap="round" />
-          {/* SCL Wire (Yellow) - from right side pin down to OLED SCL */}
+          {/* SCL Wire (Yellow) */}
           <path d="M 230 260 C 240 290, 160 290, 135 325" stroke="#ffb703" strokeWidth="3" fill="none" strokeLinecap="round" />
-          {/* SDA Wire (Blue) - from right side pin down to OLED SDA */}
+          {/* SDA Wire (Blue) */}
           <path d="M 230 245 C 250 280, 180 300, 165 325" stroke="#0077b5" strokeWidth="3" fill="none" strokeLinecap="round" />
         </svg>
 
@@ -115,20 +108,31 @@ export default function MobileFallback() {
               <span className="cursor"></span>
             </div>
 
-            {/* 🦖 GOOGLE DINOSAUR GAME RUNNER */}
-            <div style={styles.gameContainer}>
-              <div className="pixel-ground"></div>
-              
-              <div className="t-rex-runner">
-                <svg width="18" height="20" viewBox="0 0 16 16" fill="#00ffcc">
-                  <path d="M5 2h4v2h2v1h1v1h1v2h-1v1h-2v1h1v4h-2v-2h-2v2H6v-3H4v-3H2V7h2V5h1V2z" />
-                </svg>
-              </div>
-
-              <div className="cactus-obstacle">
-                <svg width="10" height="16" viewBox="0 0 10 16" fill="#00ffcc">
-                  <path d="M3 0h4v3h2v4H7v9H3V7H1V3h2V0z" />
-                </svg>
+            {/* 🐱 SYMMETRICALLY PATROLLING PIXEL CAT */}
+            <div style={styles.catContainer}>
+              <div className="cat-walker">
+                <div className="pixel-cat">
+                  <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Cat Body */}
+                    <rect x="8" y="10" width="12" height="10" fill="#00ffcc" />
+                    {/* Cat Head */}
+                    <rect x="12" y="4" width="10" height="8" fill="#00ffcc" />
+                    {/* Ears */}
+                    <path d="M12 4L10 1H13L14 4H12Z" fill="#00ffcc" />
+                    <path d="M20 4L22 1H19L18 4H20Z" fill="#00ffcc" />
+                    {/* Eyes */}
+                    <rect x="14" y="6" width="2" height="2" fill="#02050a" />
+                    <rect x="18" y="6" width="2" height="2" fill="#02050a" />
+                    {/* Tail */}
+                    <g className="cat-tail">
+                      <rect x="6" y="12" width="3" height="2" fill="#00ffcc" />
+                      <rect x="4" y="10" width="2" height="3" fill="#00ffcc" />
+                    </g>
+                    {/* Paws */}
+                    <rect x="10" y="20" width="2" height="2" fill="#00ffcc" />
+                    <rect x="16" y="20" width="2" height="2" fill="#00ffcc" />
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -255,24 +259,18 @@ const styles = {
   textContent: {
     color: '#00ffcc', 
     fontFamily: '"Courier New", Courier, monospace', 
-    fontSize: '0.75rem', 
+    fontSize: '0.8rem', 
     fontWeight: 'bold',
     whiteSpace: 'pre-wrap', 
     textShadow: '0 0 5px rgba(0, 255, 204, 0.7), 0 0 2px rgba(0, 255, 204, 0.4)', 
     zIndex: 2, 
     position: 'relative',
-    lineHeight: '1.25'
+    lineHeight: '1.3'
   },
-  gameContainer: {
+  catContainer: {
     position: 'absolute',
-    bottom: '8px',
-    left: '8px',
-    right: '8px',
-    height: '42px',
-    backgroundColor: '#010306',
-    border: '1px solid #0a223f',
-    borderRadius: '2px',
-    overflow: 'hidden',
+    bottom: '6px',
+    left: '12px',
     zIndex: 4
   }
 };
