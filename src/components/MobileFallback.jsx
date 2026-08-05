@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 export default function MobileFallback() {
   const [text, setText] = useState('');
   
-  const fullText = "> ERR_RESOLUTION\n> MOBILE DEVICE DETECTED.\n> PLEASE OPEN ON PC.";
+  const fullText = "> ERR_RESOLUTION\n> MOBILE DEVICE DETECTED.";
 
   useEffect(() => {
     let currentIndex = 0;
@@ -35,59 +35,55 @@ export default function MobileFallback() {
           50% { opacity: 0.3; box-shadow: 0 0 2px #00ffcc; }
         }
         
-        /* 🐱 Smooth Cat Movement & Jump Timeline (8s cycle) */
-        @keyframes catAction {
-          0% { transform: translateX(0px) scaleX(1); }
-          33% { transform: translateX(142px) scaleX(1); }
-          37% { transform: translateX(148px) translateY(-10px) scaleX(1); } /* Smooth leap into arms */
-          41% { transform: translateX(148px) translateY(-7px) scaleX(1); }  /* Held snugly */
-          63% { transform: translateX(148px) translateY(-7px) scaleX(1); }  /* Hold ends */
-          67% { transform: translateX(142px) translateY(0px) scaleX(-1); } /* Grounded & turns left */
-          98% { transform: translateX(0px) translateY(0px) scaleX(-1); }
-          100% { transform: translateX(0px) translateY(0px) scaleX(1); }
+        /* 🦖 T-Rex Endless Runner Animation Loop (1.8s cycle) */
+        @keyframes tRexJump {
+          0%, 35%, 100% { bottom: 4px; }
+          42%, 52% { bottom: 32px; } /* Peak of the jump */
         }
 
-        @keyframes catBob {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-2px); }
+        @keyframes cactusMove {
+          0% { right: -20px; }
+          100% { right: 230px; }
         }
 
-        @keyframes tailWag {
-          0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(-20deg); }
-        }
-
-        /* 🧑 Human Arms Reaching Out & Catching Motion */
-        @keyframes humanArms {
-          0%, 28% { transform: translateX(0px); }
-          35%, 65% { transform: translateX(-6px); } /* Reaches out and cradles */
-          71%, 100% { transform: translateX(0px); }
+        @keyframes groundScroll {
+          0% { background-position: 0 0; }
+          100% { background-position: -20px 0; }
         }
 
         .cursor {
           display: inline-block;
-          width: 7px;
-          height: 0.95rem;
+          width: 6px;
+          height: 0.85rem;
           background-color: #00ffcc;
           vertical-align: middle;
           margin-left: 2px;
           animation: blink 1s step-end infinite;
           box-shadow: 0 0 4px #00ffcc;
         }
-        .cat-animator {
-          animation: catAction 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+
+        .t-rex-runner {
+          position: absolute;
+          left: 20px;
+          animation: tRexJump 1.6s cubic-bezier(0.3, 0, 0.7, 1) infinite;
+          image-rendering: pixelated;
         }
-        .smooth-cat {
-          animation: catBob 0.3s ease-in-out infinite;
-          display: inline-block;
+
+        .cactus-obstacle {
+          position: absolute;
+          bottom: 4px;
+          animation: cactusMove 1.6s linear infinite;
+          image-rendering: pixelated;
         }
-        .cat-tail {
-          transform-origin: 5px 12px;
-          animation: tailWag 0.6s ease-in-out infinite;
-        }
-        .human-reaching-arms {
-          animation: humanArms 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-          transform-origin: right center;
+
+        .pixel-ground {
+          position: absolute;
+          bottom: 2px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: repeating-linear-gradient(90deg, #00ffcc, #00ffcc 4px, transparent 4px, transparent 8px);
+          animation: groundScroll 0.4s linear infinite;
         }
       `}</style>
 
@@ -132,47 +128,28 @@ export default function MobileFallback() {
             <div style={styles.ribbonCable}></div>
             <div style={styles.chipOnGlass}>283</div>
 
+            {/* Terminal Boot Text at Top */}
             <div style={styles.textContent}>
               {text}
               <span className="cursor"></span>
             </div>
 
-            {/* 🧑 SLEEK VECTOR HUMAN (Double the height of the cat) */}
-            <div style={styles.humanContainer}>
-              <svg width="16" height="36" viewBox="0 0 16 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Head */}
-                <circle cx="8" cy="4" r="3.5" fill="#00ffcc" />
-                {/* Torso */}
-                <path d="M4 9C4 8.44772 4.44772 8 5 8H11C11.5523 8 12 8.44772 12 9V22C12 22.5523 11.5523 23 11 23H5C4.44772 23 4 22.5523 4 22V9Z" fill="#00ffcc" />
-                {/* Legs */}
-                <line x1="5.5" y1="23" x2="5.5" y2="34" stroke="#00ffcc" strokeWidth="2.5" strokeLinecap="round" />
-                <line x1="10.5" y1="23" x2="10.5" y2="34" stroke="#00ffcc" strokeWidth="2.5" strokeLinecap="round" />
-                {/* Reaching Arms Group */}
-                <g className="human-reaching-arms">
-                  <path d="M4 11L-1 14" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" />
-                </g>
-              </svg>
-            </div>
+            {/* 🦖 GOOGLE DINOSAUR GAME RUNNER SECTION AT THE BOTTOM */}
+            <div style={styles.gameContainer}>
+              <div className="pixel-ground"></div>
+              
+              {/* Pixelated T-Rex */}
+              <div className="t-rex-runner">
+                <svg width="18" height="20" viewBox="0 0 16 16" fill="#00ffcc">
+                  <path d="M5 2h4v2h2v1h1v1h1v2h-1v1h-2v1h1v4h-2v-2h-2v2H6v-3H4v-3H2V7h2V5h1V2z" />
+                </svg>
+              </div>
 
-            {/* 🐱 SLEEK VECTOR CAT */}
-            <div style={styles.catContainer}>
-              <div className="cat-animator">
-                <div className="smooth-cat">
-                  <svg width="30" height="18" viewBox="0 0 30 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Tail */}
-                    <path d="M6 12C4 12 2 8 3 4C3.5 2 5 1 6 2" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" className="cat-tail" />
-                    {/* Body */}
-                    <ellipse cx="14" cy="11" rx="7" ry="4.5" fill="#00ffcc" />
-                    {/* Head */}
-                    <circle cx="20" cy="8" r="4.5" fill="#00ffcc" />
-                    {/* Ears */}
-                    <path d="M17 5L15.5 1.5H18L19 4.5Z" fill="#00ffcc" />
-                    <path d="M22 5L23.5 1.5H21L20 4.5Z" fill="#00ffcc" />
-                    {/* Legs */}
-                    <line x1="10" y1="14" x2="10" y2="17" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" />
-                    <line x1="17" y1="14" x2="17" y2="17" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                </div>
+              {/* Pixelated Cactus Obstacle */}
+              <div className="cactus-obstacle">
+                <svg width="10" height="16" viewBox="0 0 10 16" fill="#00ffcc">
+                  <path d="M3 0h4v3h2v4H7v9H3V7H1V3h2V0z" />
+                </svg>
               </div>
             </div>
 
@@ -404,24 +381,24 @@ const styles = {
   textContent: {
     color: '#00ffcc', 
     fontFamily: '"Courier New", Courier, monospace', 
-    fontSize: '0.8rem', 
+    fontSize: '0.75rem', 
     fontWeight: 'bold',
     whiteSpace: 'pre-wrap', 
     textShadow: '0 0 5px rgba(0, 255, 204, 0.7), 0 0 2px rgba(0, 255, 204, 0.4)', 
     zIndex: 2, 
     position: 'relative',
-    lineHeight: '1.3'
+    lineHeight: '1.25'
   },
-  catContainer: {
+  gameContainer: {
     position: 'absolute',
-    bottom: '6px',
-    left: '10px',
+    bottom: '8px',
+    left: '8px',
+    right: '8px',
+    height: '42px',
+    backgroundColor: '#010306',
+    border: '1px solid #0a223f',
+    borderRadius: '2px',
+    overflow: 'hidden',
     zIndex: 4
-  },
-  humanContainer: {
-    position: 'absolute',
-    bottom: '6px',
-    right: '15px',
-    zIndex: 3
   }
 };
