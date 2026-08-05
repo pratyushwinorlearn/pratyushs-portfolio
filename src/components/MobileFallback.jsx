@@ -35,11 +35,11 @@ export default function MobileFallback() {
           50% { opacity: 0.3; box-shadow: 0 0 2px #00ffcc; }
         }
         @keyframes catWalk {
-          0% { transform: translateX(0px) scaleX(-1); }
-          48% { transform: translateX(-130px) scaleX(-1); }
-          50% { transform: translateX(-130px) scaleX(1); }
-          98% { transform: translateX(0px) scaleX(1); }
-          100% { transform: translateX(0px) scaleX(-1); }
+          0% { transform: translateX(0px) scaleX(1); }
+          48% { transform: translateX(175px) scaleX(1); }
+          50% { transform: translateX(175px) scaleX(-1); }
+          98% { transform: translateX(0px) scaleX(-1); }
+          100% { transform: translateX(0px) scaleX(1); }
         }
         @keyframes catBounce {
           0%, 100% { transform: translateY(0); }
@@ -118,7 +118,7 @@ export default function MobileFallback() {
               <span className="cursor"></span>
             </div>
 
-            {/* 🐱 ANIMATED PATROLLING PIXEL CAT */}
+            {/* 🐱 SYMMETRICALLY PATROLLING PIXEL CAT */}
             <div style={styles.catContainer}>
               <div className="cat-walker">
                 <div className="pixel-cat">
@@ -385,7 +385,7 @@ const styles = {
   catContainer: {
     position: 'absolute',
     bottom: '6px',
-    right: '15px',
+    left: '12px', // Anchored to the left side now
     zIndex: 4
   }
 };
