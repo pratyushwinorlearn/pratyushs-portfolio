@@ -9,6 +9,7 @@ import { createPlayerState } from './utils/playerState.js'
 import InteractiveChair from './components/InteractiveChair'
 import InteractiveSofa from './components/InteractiveSofa'
 import UserCursor from './components/UserCursor.jsx' 
+import InteractiveCrowbar from './components/InteractiveCrowbar.jsx'
 
 function Moon() {
   const moonRef = useRef()
@@ -126,6 +127,17 @@ function UIManager({ playerState, setIsUIOpen }) {
         welcomeHint.style.display = 'none'
       }
     }
+
+    // 🚨 NEW: Crowbar Drop Prompt Logic
+    const dropPrompt = document.getElementById('drop-prompt')
+    if (dropPrompt) {
+      // Only show if holding crowbar AND actively playing (pointer locked)
+      if (playerState.hasCrowbar && document.pointerLockElement) {
+        dropPrompt.style.display = 'block'
+      } else {
+        dropPrompt.style.display = 'none'
+      }
+    }
   })
 
   return null
@@ -221,6 +233,11 @@ export default function App() {
         PRESS [ E ] TO STAND UP FIRST
       </div>
 
+      {/* 🚨 NEW: CROWBAR DROP PROMPT */}
+      <div id="drop-prompt" style={{ position: 'absolute', bottom: '10%', right: '5%', color: '#ffb703', fontFamily: 'monospace', fontSize: '1.2rem', backgroundColor: 'rgba(20,15,0,0.85)', padding: '10px 20px', border: '1px solid #ffb703', borderRadius: '4px', display: 'none', zIndex: 100, pointerEvents: 'none', boxShadow: '0 0 10px rgba(255, 183, 3, 0.3)' }}>
+        [ G ] DROP CROWBAR
+      </div>
+
       {isLocked && !isUIOpen && (
         <div style={{ position: 'absolute', bottom: '20px', right: '20px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'monospace', fontSize: '0.85rem', zIndex: 50, pointerEvents: 'none' }}>
           [ ESC ] Controls Menu
@@ -238,6 +255,10 @@ export default function App() {
             <div style={{ textAlign: 'right', color: '#888' }}>[ V ]</div><div>Toggle Camera (FPP / TPP)</div>
             <div style={{ textAlign: 'right', color: '#888' }}>[ E ]</div><div>Sit / Stand</div>
             <div style={{ textAlign: 'right', color: '#888' }}>[ I ]</div><div>Access Terminal (When Seated)</div>
+            
+            {/* 🚨 ADDED CROWBAR CONTROL HERE */}
+            <div style={{ textAlign: 'right', color: '#888' }}>[ G ]</div><div>Drop Item</div>
+            
             <div style={{ textAlign: 'right', color: '#888' }}>[ ESC ]</div><div>Pause / Release Mouse</div>
           </div>
           <div style={{ marginTop: '60px', color: '#ff2a5f', fontSize: '1.2rem', animation: 'pulse 1.5s infinite' }}>CLICK ANYWHERE TO RESUME</div>
@@ -265,6 +286,9 @@ export default function App() {
           <Room playerState={playerState} isUIOpen={isUIOpen} closeUI={() => setIsUIOpen(false)} />
           <InteractiveChair playerState={playerState} rigidBodyRef={rigidBodyRef} setIsUIOpen={setIsUIOpen} />
           <InteractiveSofa playerState={playerState} rigidBodyRef={rigidBodyRef} />
+          
+          <InteractiveCrowbar playerState={playerState} />
+          
           <Player playerState={playerState} rigidBodyRef={rigidBodyRef} colliderRef={colliderRef} />
           <CameraRig playerState={playerState} rigidBodyRef={rigidBodyRef} />
         </Physics>

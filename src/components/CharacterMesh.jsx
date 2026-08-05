@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { useFrame, useGraph, useThree } from '@react-three/fiber'
+import { useFrame, useGraph, useThree, createPortal } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import * as THREE from 'three'
@@ -11,10 +11,12 @@ export default function CharacterMesh({ actionRef, playerState, ...props }) {
   const { nodes, materials } = useGraph(clone)
   const { actions } = useAnimations(animations, group)
   
+  // 🚨 LOAD ROOM GLTF SO WE CAN EXTRACT THE CROWBAR MESH
+  const { nodes: roomNodes, materials: roomMaterials } = useGLTF('/control_room_by_amogusstrikesback2/scene.gltf')
+
   const { camera } = useThree()
   const [currentAnim, setCurrentAnim] = useState('Idle')
 
-  // --- NEW: Memory bank for the original bone rotations ---
   const initialSpineRot = useRef(0)
   const initialHeadRot = useRef(0)
   const hasInitialized = useRef(false)
@@ -28,7 +30,6 @@ export default function CharacterMesh({ actionRef, playerState, ...props }) {
     // 2. Procedural Head Tracking (IK)
     if (playerState.mode === 'tpp' && nodes.mixamorigSpine2 && nodes.mixamorigHead) {
        
-       // Capture the safe, default rotation on the very first frame
        if (!hasInitialized.current) {
          initialSpineRot.current = nodes.mixamorigSpine2.rotation.x
          initialHeadRot.current = nodes.mixamorigHead.rotation.x
@@ -39,7 +40,6 @@ export default function CharacterMesh({ actionRef, playerState, ...props }) {
        camera.getWorldDirection(dir)
        const pitch = Math.asin(dir.y)
        
-       // Set the rotation absolutely based on the baseline, NEVER cumulatively!
        nodes.mixamorigSpine2.rotation.x = initialSpineRot.current - (pitch * 0.3)
        nodes.mixamorigHead.rotation.x = initialHeadRot.current - (pitch * 0.7)
     }
@@ -67,8 +67,31 @@ export default function CharacterMesh({ actionRef, playerState, ...props }) {
           </group>
         </group>
       </group>
+
+      {/* 🚨 THE MAGIC: BONE ATTACHMENT PORTAL */}
+      {/* If the player has the crowbar, render it directly inside the Right Hand bone! */}
+      {playerState.hasCrowbar && nodes.mixamorigRightHand && createPortal(
+        <group 
+          // 📐 TWEAK THESE TO FIT PERFECTLY IN HIS PALM:
+          // Because the armature is scaled at 0.01, we scale this container group to 100 
+          // to normalize it, preventing the crowbar from becoming microscopic.
+          scale={100}
+          
+          // Adjust these offsets to get the grip exactly right in his hand
+          position={[0, 8, -5]} 
+          rotation={[Math.PI / 2, -Math.PI / 2, 0]} 
+        >
+          <mesh
+            geometry={roomNodes.Object_58.geometry}
+            material={roomMaterials.Item_Crowbar_IS8_TXT_Office_Props_Mobile_0_Baked}
+            scale={0.012} // Your original preferred visual size
+          />
+        </group>,
+        nodes.mixamorigRightHand // The exact skeleton bone we are attaching it to
+      )}
     </group>
   )
 }
 
 useGLTF.preload('/swat_guy.glb')
+useGLTF.preload('/control_room_by_amogusstrikesback2/scene.gltf')

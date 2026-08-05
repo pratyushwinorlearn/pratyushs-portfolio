@@ -7,17 +7,15 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
   const [isNear, setIsNear] = useState(false)
   const [isSitting, setIsSitting] = useState(false)
   
-  // 🚨 NEW STATE: Keeps the chair non-solid temporarily when you stand up
+  // Keeps the chair non-solid temporarily when you stand up
   const [justStoodUp, setJustStoodUp] = useState(false)
   
   const isNearRef = useRef(false) 
 
-  // 1. CHAIR WORLD POSITION
   const chairX = 2.7   
   const chairZ = -4.1
   const triggerRadius = 1
 
-  // 2. CHARACTER SITTING OFFSETS
   const playerSitOffsetX = 0.1
   const playerSitOffsetZ = 0.01
 
@@ -38,7 +36,7 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
             // 🧍 STANDING UP:
             if (setIsUIOpen) setIsUIOpen(false)
             
-            // Activate the "ghost" phase so you don't get stuck, no teleporting!
+            // Activate the "ghost" phase so you don't get stuck!
             setJustStoodUp(true)
           } else {
             // 🪑 SITTING DOWN:
@@ -72,7 +70,7 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
       isNearRef.current = closeEnough
       setIsNear(closeEnough)
       
-      // 🚨 THE RESET: Once you walk away from the chair, it becomes solid again!
+      // Once you walk away from the chair, it becomes solid again!
       if (!closeEnough) {
         setJustStoodUp(false)
       }
@@ -86,12 +84,7 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
 
   return (
     <group position={[chairX, 0, chairZ]}>
-      {/* 🚨 THE PHYSICS BLOCK IS BACK 🚨 */}
       <RigidBody type="fixed" colliders={false}>
-        {/* 
-          Disabled ONLY when you are actively sitting OR in the "Ghost Phase" 
-          walking away from the chair. Otherwise, it is a solid box!
-        */}
         <CuboidCollider 
           args={[0.35, 0.5, 0.35]} 
           disabled={isSitting || justStoodUp} 

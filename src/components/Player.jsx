@@ -1,28 +1,36 @@
 import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RigidBody, CapsuleCollider, useRapier } from '@react-three/rapier'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import CharacterMesh from './CharacterMesh'
 
-// --- tuning knobs ---
 const SPEED = 4.2 
 const CROUCH_SPEED = 2.0 
 const JUMP_FORCE = 6.0 
 const GRAVITY = -15.0 
 const CAPSULE_HALF_HEIGHT = 0.55 
 const CAPSULE_RADIUS = 0.35
+const STAND_EYE_OFFSET = 0.8
+const CROUCH_EYE_OFFSET = -0.15
 
 export default function Player({ playerState, rigidBodyRef, colliderRef }) {
   const { camera } = useThree()
   const { world } = useRapier()
 
+  const { nodes, materials } = useGLTF('/control_room_by_amogusstrikesback2/scene.gltf')
+
   const controllerRef = useRef(null)
   const verticalVelocity = useRef(0)
-  
   const keys = useRef({ w: false, a: false, s: false, d: false, space: false, shift: false })
   
   const meshGroupRef = useRef()
   const actionRef = useRef('Idle') 
+
+  const weaponContainerRef = useRef()
+  const weaponMeshRef = useRef()
+  const isAttackingRef = useRef(false)
+  const attackTimeRef = useRef(0)
 
   useEffect(() => {
     const controller = world.createCharacterController(0.02)
@@ -31,13 +39,8 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     controller.setSlideEnabled(true)
     controllerRef.current = controller
     return () => {
-  try {
-    world.removeCharacterController(controller)
-  } catch (err) {
-    // Same Rapier World teardown race as CameraRig.jsx's raycast —
-    // harmless to skip if the World is already mid-teardown here.
-  }
-}
+      try { world.removeCharacterController(controller) } catch (err) {}
+    }
   }, [world])
 
   useEffect(() => {
@@ -52,19 +55,28 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     const down = (e) => {
       setKey(e.code, true)
-      if (e.code === 'KeyP') {
-        console.log(`📍 PLAYER COORDS: X: ${playerState.position.x.toFixed(2)}, Y: ${playerState.position.y.toFixed(2)}, Z: ${playerState.position.z.toFixed(2)}`)
+    }
+    
+    const up = (e) => setKey(e.code, false)
+
+    const handleMouseDown = (e) => {
+      // 🚨 UPDATED: Removed the FPP restriction! Now you can attack in both TPP and FPP.
+      if (e.button === 0 && playerState.hasCrowbar && document.pointerLockElement) {
+        if (!isAttackingRef.current) {
+          isAttackingRef.current = true
+          attackTimeRef.current = 0
+        }
       }
     }
 
-    const up = (e) => setKey(e.code, false)
-
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
+    window.addEventListener('mousedown', handleMouseDown)
     
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
+      window.removeEventListener('mousedown', handleMouseDown)
     }
   }, [playerState]) 
 
@@ -74,35 +86,25 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     const controller = controllerRef.current
     if (!rb || !collider || !controller) return
 
-    // --- UPGRADED: THE SITTING OVERRIDE ---
     if (playerState.isSitting) {
-      
+      verticalVelocity.current = 0 
       actionRef.current = playerState.sitType === 'sofa' ? 'mixamo.com.001' : 'sitting' 
-      
       const pos = rb.translation()
       playerState.position.set(pos.x, pos.y, pos.z)
-
       if (meshGroupRef.current) {
-        
-        // FIXED: Changed the sofa rotation from 0 to -Math.PI / 2 to turn him outward!
-        // (If he faces the wall instead of the room, remove the minus sign!)
-        meshGroupRef.current.rotation.y = playerState.sitType === 'sofa' ? Math.PI / 2 : Math.PI / 2 
-        
+        meshGroupRef.current.rotation.y = Math.PI / 2 
         meshGroupRef.current.visible = playerState.mode === 'tpp'
       }
-      
+      if (weaponContainerRef.current) weaponContainerRef.current.visible = false
       return 
     }
-    // --- END SITTING OVERRIDE ---
 
-    // 1. Camera Direction
     const forward = new THREE.Vector3()
     camera.getWorldDirection(forward)
     forward.y = 0
     forward.normalize()
     const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize()
 
-    // 2. Movement Vector Math
     const move = new THREE.Vector3()
     if (keys.current.w) move.add(forward)
     if (keys.current.s) move.sub(forward)
@@ -111,35 +113,44 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     
     const isMoving = move.lengthSq() > 0
     const currentSpeed = keys.current.shift ? CROUCH_SPEED : SPEED
-    
     if (isMoving) move.normalize().multiplyScalar(currentSpeed * delta)
 
-    // 3. Jump & Gravity Logic
     const grounded = controller.computedGrounded && controller.computedGrounded()
     if (grounded) {
-      if (keys.current.space) {
-        verticalVelocity.current = JUMP_FORCE
-      } else {
-        verticalVelocity.current = Math.max(verticalVelocity.current, -0.1)
-      }
+      if (keys.current.space) verticalVelocity.current = JUMP_FORCE
+      else verticalVelocity.current = Math.max(verticalVelocity.current, -0.1)
     }
     verticalVelocity.current += GRAVITY * delta
     move.y = verticalVelocity.current * delta
 
-    // 4. Apply Physics
     controller.computeColliderMovement(collider, move)
     const corrected = controller.computedMovement()
+
     const pos = rb.translation()
     const next = { x: pos.x + corrected.x, y: pos.y + corrected.y, z: pos.z + corrected.z }
     rb.setNextKinematicTranslation(next)
     playerState.position.set(next.x, next.y, next.z)
 
-    // 5. Determine the active animation state
+    // 🚨 GLOBAL ATTACK TIMER (Runs in both TPP and FPP)
+    // Adjust 0.8 to match the actual length of your Mixamo swing animation!
+    const attackDuration = 0.8; 
+    if (isAttackingRef.current) {
+      attackTimeRef.current += delta;
+      if (attackTimeRef.current >= attackDuration) {
+        isAttackingRef.current = false;
+        attackTimeRef.current = 0;
+      }
+    }
+
+    // 🚨 UPDATED ANIMATION STATE MACHINE (Now handles Melee actions!)
     let nextAction = 'Idle'
     
     if (!grounded) {
       nextAction = 'jumpingcomplete' 
     } 
+    else if (isAttackingRef.current && playerState.hasCrowbar) {
+      nextAction = 'meleeattack' // 💥 TPP Attack Override
+    }
     else if (keys.current.shift) {
       if (isMoving) {
         if (keys.current.w) nextAction = 'crouching' 
@@ -151,37 +162,86 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
       }
     } 
     else if (isMoving) {
-      if (keys.current.w) nextAction = 'Walk'
-      else if (keys.current.s) nextAction = 'Walk' 
-      else if (keys.current.a) nextAction = 'leftstrafe' 
-      else if (keys.current.d) nextAction = 'rightwalking' 
+      if (playerState.hasCrowbar) {
+        // 🔪 ARMED MOVEMENT
+        if (keys.current.w) nextAction = 'walkforwardmelee'
+        else if (keys.current.s) nextAction = 'walkbackmelee' 
+        else if (keys.current.a) nextAction = 'walkleftmelee' 
+        else if (keys.current.d) nextAction = 'walkrightmelee' 
+      } else {
+        // 🚶 UNARMED MOVEMENT
+        if (keys.current.w || keys.current.s) nextAction = 'Walk'
+        else if (keys.current.a) nextAction = 'leftstrafe' 
+        else if (keys.current.d) nextAction = 'rightwalking' 
+      }
+    } else {
+      // 🧍 IDLE STATE
+      nextAction = playerState.hasCrowbar ? 'standingidlemelee' : 'Idle'
     }
     
     actionRef.current = nextAction
 
-    // 6. Mesh Rotation (True Strafing Setup)
     if (meshGroupRef.current) {
       meshGroupRef.current.visible = playerState.mode === 'tpp'
       meshGroupRef.current.rotation.y = Math.atan2(forward.x, forward.z)
     }
+
+    // FPS Weapon Rendering Logic
+    if (weaponContainerRef.current && weaponMeshRef.current) {
+      const showWeapon = !!playerState.hasCrowbar && playerState.mode === 'fpp' && !playerState.isSitting
+      weaponContainerRef.current.visible = showWeapon
+
+      if (showWeapon) {
+        const headPos = playerState.position.clone()
+        headPos.y += keys.current.shift ? CROUCH_EYE_OFFSET : STAND_EYE_OFFSET
+        
+        weaponContainerRef.current.position.copy(headPos)
+        weaponContainerRef.current.quaternion.copy(camera.quaternion)
+        
+        weaponContainerRef.current.translateX(0.3)
+        weaponContainerRef.current.translateY(-0.4)
+        weaponContainerRef.current.translateZ(-0.4)
+
+        if (isAttackingRef.current) {
+          // FPP camera swing math
+          const progress = attackTimeRef.current / attackDuration
+          const swing = Math.sin(progress * Math.PI) * 1.5 
+          weaponMeshRef.current.rotation.x = (-Math.PI / 2) - swing 
+        } else {
+          weaponMeshRef.current.rotation.x = -Math.PI / 2 
+        }
+      }
+    }
   })
 
   return (
-    <RigidBody
-      ref={rigidBodyRef}
-      type="kinematicPosition"
-      colliders={false}
-      position={[0.6, 2, -3.5]} 
-      enabledRotations={[false, false, false]}
-    >
-      <CapsuleCollider ref={colliderRef} args={[CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS]} />
-      <group ref={meshGroupRef}>
-        <CharacterMesh 
-          actionRef={actionRef}
-          playerState={playerState}
-          position={[0, -CAPSULE_HALF_HEIGHT - CAPSULE_RADIUS, 0]} 
+    <>
+      <RigidBody
+        ref={rigidBodyRef}
+        type="kinematicPosition"
+        colliders={false}
+        position={[0.6, 2, -3.5]} 
+        enabledRotations={[false, false, false]}
+      >
+        <CapsuleCollider ref={colliderRef} args={[CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS]} />
+        <group ref={meshGroupRef}>
+          <CharacterMesh 
+            actionRef={actionRef}
+            playerState={playerState}
+            position={[0, -CAPSULE_HALF_HEIGHT - CAPSULE_RADIUS, 0]} 
+          />
+        </group>
+      </RigidBody>
+
+      <group ref={weaponContainerRef} visible={false}>
+        <mesh
+          ref={weaponMeshRef}
+          geometry={nodes.Object_58.geometry}
+          material={materials.Item_Crowbar_IS8_TXT_Office_Props_Mobile_0_Baked}
+          scale={0.012} 
+          rotation={[Math.PI / 1, Math.PI / 2, Math.PI / 3]} 
         />
       </group>
-    </RigidBody>
+    </>
   )
 }
