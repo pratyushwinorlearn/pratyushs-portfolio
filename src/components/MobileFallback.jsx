@@ -71,7 +71,7 @@ export default function MobileFallback() {
       {/* Circuit Workspace Container */}
       <div style={styles.circuitWrapper}>
         
-        {/* 🔲 LARGER HORIZONTAL ESP32 BOARD IMAGE */}
+        {/* 🔲 PROPERLY PROPORTIONED HORIZONTAL ESP32 */}
         <div style={styles.espContainer}>
           <img 
             src="/esp32.png" 
@@ -80,16 +80,16 @@ export default function MobileFallback() {
           />
         </div>
 
-        {/* ⚡ PRECISELY ATTACHED JUMPER WIRES */}
-        <svg style={styles.wireSvg} width="340" height="520">
-          {/* GND Wire (Black) */}
-          <path d="M 85 130 C 85 200, 75 240, 82 325" stroke="#111" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          {/* VCC Wire (Red) */}
-          <path d="M 125 130 C 125 210, 95 240, 108 325" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          {/* SCL Wire (Yellow) */}
-          <path d="M 215 130 C 215 210, 125 240, 134 325" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          {/* SDA Wire (Blue) */}
-          <path d="M 255 130 C 255 220, 150 250, 160 325" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        {/* ⚡ PERFECTLY ALIGNED JUMPER WIRES (Bottom ESP32 Pins to Top OLED Pins) */}
+        <svg style={styles.wireSvg} width="320" height="520">
+          {/* GND Wire (Black) -> Connects to left GND pin */}
+          <path d="M 112 110 C 100 190, 80 230, 82 320" stroke="#111" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          {/* VCC Wire (Red) -> Connects to 3V3 / VCC pin */}
+          <path d="M 132 110 C 120 200, 100 230, 108 320" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          {/* SCL Wire (Yellow) -> Connects to SCL / GPIO pin */}
+          <path d="M 178 110 C 160 200, 125 230, 134 320" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          {/* SDA Wire (Blue) -> Connects to SDA / GPIO pin */}
+          <path d="M 198 110 C 180 210, 145 240, 160 320" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
         </svg>
 
         {/* 🖥️ REALISTIC BLUE OLED MODULE */}
@@ -159,17 +159,18 @@ const styles = {
   },
   circuitWrapper: {
     position: 'relative',
-    width: '340px',
-    height: '540px',
+    width: '320px',
+    height: '520px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center'
   },
   espContainer: {
     position: 'absolute',
-    top: '20px',
-    width: '300px',
-    height: '130px',
+    top: '25px',
+    left: '20px',
+    width: '280px',
+    height: '115px',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -180,7 +181,7 @@ const styles = {
     width: '100%',
     height: '100%',
     objectFit: 'contain',
-    transform: 'rotate(90deg)' // Rotates the vertical chip image cleanly into a horizontal layout
+    transform: 'rotate(90deg)'
   },
   wireSvg: {
     position: 'absolute',
@@ -192,7 +193,7 @@ const styles = {
   oledModule: {
     position: 'absolute',
     top: '320px',
-    left: '45px',
+    left: '35px',
     width: '250px',
     height: '160px',
     backgroundColor: '#1b3b6f',
