@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 export default function MobileFallback() {
   const [text, setText] = useState('');
+  const [socialText, setSocialText] = useState('');
   const [currentScreen, setCurrentScreen] = useState('main'); // 'main' or 'social'
   
   const mainText = "> ERR_RESOLUTION\n> MOBILE DEVICE DETECTED.\n> PLEASE OPEN ON PC.";
@@ -13,6 +14,20 @@ export default function MobileFallback() {
     const interval = setInterval(() => {
       if (currentIndex <= mainText.length) {
         setText(mainText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 40);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Typewriter effect for social screen
+  useEffect(() => {
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      if (currentIndex <= socialText.length) {
+        setSocialText(socialText.slice(0, currentIndex));
         currentIndex++;
       } else {
         clearInterval(interval);
@@ -116,7 +131,7 @@ export default function MobileFallback() {
           <div style={styles.socketHoles}></div>
         </div>
 
-        {/* 🖥️ REALISTIC BLUE OLED MODULE WITH BUTTON NAVIGATION */}
+        {/* 🖥️ REALISTIC BLUE OLED MODULE WITH CLEAN SLIDING NAVIGATION */}
         <div style={styles.oledModule}>
           <div style={{...styles.mountHole, top: '8px', left: '8px'}}></div>
           <div style={{...styles.mountHole, top: '8px', right: '8px'}}></div>
@@ -125,7 +140,6 @@ export default function MobileFallback() {
 
           <div style={styles.screen}>
             <div style={styles.ribbonCable}></div>
-            <div style={styles.chipOnGlass}>283</div>
 
             {/* Sliding Container for Screen Content */}
             <div style={{
@@ -178,6 +192,7 @@ export default function MobileFallback() {
                   {socialText}
                 </div>
 
+                {/* Social Icons Row (Shifted Up) */}
                 <div style={styles.socialIconsContainer}>
                   {/* GitHub */}
                   <a href="https://github.com/pratyushwinorlearn" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="GitHub">
@@ -432,18 +447,6 @@ const styles = {
     backgroundImage: 'repeating-linear-gradient(45deg, #111, #111 2px, #1a1a1a 2px, #1a1a1a 4px)',
     zIndex: 3
   },
-  chipOnGlass: {
-    position: 'absolute',
-    bottom: '4px',
-    left: '12px',
-    backgroundColor: '#111',
-    color: '#777',
-    fontSize: '6px',
-    padding: '1px 3px',
-    fontFamily: 'monospace',
-    border: '1px solid #333',
-    zIndex: 3
-  },
   textContent: {
     color: '#00ffcc', 
     fontFamily: '"Courier New", Courier, monospace', 
@@ -463,7 +466,7 @@ const styles = {
   },
   rightArrow: {
     position: 'absolute',
-    bottom: '10px',
+    bottom: '6px',
     right: '8px',
     color: '#00ffcc',
     fontFamily: 'monospace',
@@ -474,7 +477,7 @@ const styles = {
   },
   leftArrow: {
     position: 'absolute',
-    bottom: '10px',
+    bottom: '6px',
     left: '8px',
     color: '#00ffcc',
     fontFamily: 'monospace',
@@ -485,7 +488,7 @@ const styles = {
   },
   socialIconsContainer: {
     position: 'absolute',
-    bottom: '12px',
+    bottom: '35px', // Shifted up cleanly away from the bottom edge
     left: '0',
     right: '0',
     display: 'flex',
