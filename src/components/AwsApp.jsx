@@ -24,6 +24,12 @@ export default function AwsApp() {
       link: "https://www.credly.com/earner/earned/badge/780cf463-fed0-464d-9fa7-4ef31d87eebf"
     },
     {
+      text: "AWS Generative AI Architect",
+      sub: "CloudQuest",
+      src: "/awsbadges/aws-cloud-quest-generative-ai-architect-training-ba.png", 
+      link: "https://www.credly.com/earner/earned/badge/94dfc518-a2ff-4e3a-8098-4498b0e89cba"
+    },
+    {
       text: "AWS Generative AI Practitioner",
       sub: "CloudQuest",
       src: "/awsbadges/aws-cloud-quest-generative-ai-practitioner-training.png", 

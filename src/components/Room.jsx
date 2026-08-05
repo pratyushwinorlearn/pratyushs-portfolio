@@ -140,7 +140,7 @@ export default function Room({ playerState, isUIOpen, closeUI, ...props }) {
             opacity: isUIOpen ? 1 : 0, pointerEvents: isUIOpen ? 'auto' : 'none', 
             backgroundColor: isUIOpen ? '#0a0a0a' : 'transparent', transition: 'opacity 0.3s ease',
           }}>
-            <PortfolioOS isUIOpen={true} closeUI={closeUI} /> 
+            <PortfolioOS isUIOpen={isUIOpen} closeUI={closeUI} /> 
           </div>
         </Html>
       </group>
