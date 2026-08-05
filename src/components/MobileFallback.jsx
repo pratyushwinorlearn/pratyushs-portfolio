@@ -34,6 +34,13 @@ export default function MobileFallback() {
           0%, 100% { opacity: 1; box-shadow: 0 0 6px #00ffcc; }
           50% { opacity: 0.3; box-shadow: 0 0 2px #00ffcc; }
         }
+        @keyframes catWalk {
+          0% { transform: translateX(0px) scaleX(-1); }
+          48% { transform: translateX(-130px) scaleX(-1); }
+          50% { transform: translateX(-130px) scaleX(1); }
+          98% { transform: translateX(0px) scaleX(1); }
+          100% { transform: translateX(0px) scaleX(-1); }
+        }
         @keyframes catBounce {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-3px); }
@@ -52,13 +59,16 @@ export default function MobileFallback() {
           animation: blink 1s step-end infinite;
           box-shadow: 0 0 4px #00ffcc;
         }
+        .cat-walker {
+          animation: catWalk 7s ease-in-out infinite;
+        }
         .pixel-cat {
-          animation: catBounce 1.5s ease-in-out infinite;
+          animation: catBounce 0.35s ease-in-out infinite;
           display: inline-block;
         }
         .cat-tail {
           transform-origin: bottom left;
-          animation: tailWag 0.8s ease-in-out infinite;
+          animation: tailWag 0.6s ease-in-out infinite;
         }
       `}</style>
 
@@ -108,29 +118,31 @@ export default function MobileFallback() {
               <span className="cursor"></span>
             </div>
 
-            {/* 🐱 FUNNY ANIMATED PIXEL CAT IN THE BOTTOM CORNER */}
+            {/* 🐱 ANIMATED PATROLLING PIXEL CAT */}
             <div style={styles.catContainer}>
-              <div className="pixel-cat">
-                <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* Cat Body */}
-                  <rect x="8" y="10" width="12" height="10" fill="#00ffcc" />
-                  {/* Cat Head */}
-                  <rect x="12" y="4" width="10" height="8" fill="#00ffcc" />
-                  {/* Ears */}
-                  <path d="M12 4L10 1H13L14 4H12Z" fill="#00ffcc" />
-                  <path d="M20 4L22 1H19L18 4H20Z" fill="#00ffcc" />
-                  {/* Eyes (Blinding hacker glow) */}
-                  <rect x="14" y="6" width="2" height="2" fill="#02050a" />
-                  <rect x="18" y="6" width="2" height="2" fill="#02050a" />
-                  {/* Tail */}
-                  <g className="cat-tail">
-                    <rect x="6" y="12" width="3" height="2" fill="#00ffcc" />
-                    <rect x="4" y="10" width="2" height="3" fill="#00ffcc" />
-                  </g>
-                  {/* Paws */}
-                  <rect x="10" y="20" width="2" height="2" fill="#00ffcc" />
-                  <rect x="16" y="20" width="2" height="2" fill="#00ffcc" />
-                </svg>
+              <div className="cat-walker">
+                <div className="pixel-cat">
+                  <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Cat Body */}
+                    <rect x="8" y="10" width="12" height="10" fill="#00ffcc" />
+                    {/* Cat Head */}
+                    <rect x="12" y="4" width="10" height="8" fill="#00ffcc" />
+                    {/* Ears */}
+                    <path d="M12 4L10 1H13L14 4H12Z" fill="#00ffcc" />
+                    <path d="M20 4L22 1H19L18 4H20Z" fill="#00ffcc" />
+                    {/* Eyes */}
+                    <rect x="14" y="6" width="2" height="2" fill="#02050a" />
+                    <rect x="18" y="6" width="2" height="2" fill="#02050a" />
+                    {/* Tail */}
+                    <g className="cat-tail">
+                      <rect x="6" y="12" width="3" height="2" fill="#00ffcc" />
+                      <rect x="4" y="10" width="2" height="3" fill="#00ffcc" />
+                    </g>
+                    {/* Paws */}
+                    <rect x="10" y="20" width="2" height="2" fill="#00ffcc" />
+                    <rect x="16" y="20" width="2" height="2" fill="#00ffcc" />
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -373,7 +385,7 @@ const styles = {
   catContainer: {
     position: 'absolute',
     bottom: '6px',
-    right: '12px',
+    right: '15px',
     zIndex: 4
   }
 };
