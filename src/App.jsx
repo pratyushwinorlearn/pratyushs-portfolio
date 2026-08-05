@@ -151,7 +151,7 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
         if (pos.y < -20) {
           playerState.isSitting = false
           playerState.sitType = null
-          rigidBodyRef.current.setTranslation({ x: 0, y: 1, z: -4 }, true)
+          rigidBodyRef.current.setTranslation({ x: 0, y: 1.2, z: -4 }, true)
           rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
           rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true)
         }

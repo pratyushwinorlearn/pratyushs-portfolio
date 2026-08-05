@@ -3,14 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portfolio — Phase 1</title>
+    <title>Pratyush's Portfolio</title>
     <style>
-      /* ✅ Removed #root from this line so it doesn't get overflow: hidden */
       html, body { margin: 0; height: 100%; background: #000; overflow: clip; }
       
-      /* ✅ Gave #root its own clean rule */
       #root { margin: 0; height: 100%; }
 
+      /* 🚨 NEW LOADING SCREEN STYLES */
       #hint {
         position: fixed;
         inset: 0;
@@ -18,22 +17,50 @@
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        gap: 8px;
-        color: #eee;
+        gap: 20px;
+        color: #00ffcc;
         font-family: monospace;
-        font-size: 18px;
-        background: rgba(0,0,0,0.5);
-        pointer-events: none;
-        z-index: 10;
+        background: #050505; /* Deep dark background */
+        z-index: 10000; /* Keeps it on top of everything */
+      }
+
+      /* Animated spinning ring */
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(0, 255, 204, 0.2);
+        border-radius: 50%;
+        border-top-color: #00ffcc;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      /* Blinking text */
+      .loading-text {
+        font-size: 1.2rem;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); }
+        50% { opacity: 0.4; text-shadow: none; }
       }
     </style>
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- 🚨 NEW LOADING SCREEN HTML -->
     <div id="hint">
-      <div>click to look around</div>
-      <div style="font-size: 14px; opacity: 0.7;">WASD to move &nbsp;·&nbsp; V to toggle camera &nbsp;·&nbsp; ESC to release cursor</div>
+      <div class="spinner"></div>
+      <div class="loading-text">Initializing System...</div>
     </div>
+    
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

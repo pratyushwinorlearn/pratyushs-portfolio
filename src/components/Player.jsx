@@ -31,6 +31,9 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
   const weaponMeshRef = useRef()
   const isAttackingRef = useRef(false)
   const attackTimeRef = useRef(0)
+  
+  // 🚨 NEW: Timer to prevent falling before the map loads
+  const spawnGraceTimer = useRef(0)
 
   useEffect(() => {
     const controller = world.createCharacterController(0.02)
@@ -60,7 +63,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     const up = (e) => setKey(e.code, false)
 
     const handleMouseDown = (e) => {
-      // 🚨 UPDATED: Removed the FPP restriction! Now you can attack in both TPP and FPP.
       if (e.button === 0 && playerState.hasCrowbar && document.pointerLockElement) {
         if (!isAttackingRef.current) {
           isAttackingRef.current = true
@@ -115,12 +117,25 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     const currentSpeed = keys.current.shift ? CROUCH_SPEED : SPEED
     if (isMoving) move.normalize().multiplyScalar(currentSpeed * delta)
 
+    // 🚨 UPDATED: Jump & Gravity Logic with Grace Period and Terminal Velocity Fix
     const grounded = controller.computedGrounded && controller.computedGrounded()
+    
+    spawnGraceTimer.current += delta
+    const isSpawnGrace = spawnGraceTimer.current < 0.5
+
     if (grounded) {
       if (keys.current.space) verticalVelocity.current = JUMP_FORCE
       else verticalVelocity.current = Math.max(verticalVelocity.current, -0.1)
+    } else if (!isSpawnGrace) {
+      // Only apply gravity if the grace period is over
+      verticalVelocity.current += GRAVITY * delta
+      // Terminal velocity clamp to prevent tunneling through the floor
+      verticalVelocity.current = Math.max(verticalVelocity.current, -20.0)
+    } else {
+      // Float safely while the room loads
+      verticalVelocity.current = 0 
     }
-    verticalVelocity.current += GRAVITY * delta
+    
     move.y = verticalVelocity.current * delta
 
     controller.computeColliderMovement(collider, move)
@@ -131,8 +146,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     rb.setNextKinematicTranslation(next)
     playerState.position.set(next.x, next.y, next.z)
 
-    // 🚨 GLOBAL ATTACK TIMER (Runs in both TPP and FPP)
-    // Adjust 0.8 to match the actual length of your Mixamo swing animation!
     const attackDuration = 0.8; 
     if (isAttackingRef.current) {
       attackTimeRef.current += delta;
@@ -142,14 +155,13 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
       }
     }
 
-    // 🚨 UPDATED ANIMATION STATE MACHINE (Now handles Melee actions!)
     let nextAction = 'Idle'
     
     if (!grounded) {
       nextAction = 'jumpingcomplete' 
     } 
     else if (isAttackingRef.current && playerState.hasCrowbar) {
-      nextAction = 'meleeattack' // 💥 TPP Attack Override
+      nextAction = 'meleeattack' 
     }
     else if (keys.current.shift) {
       if (isMoving) {
@@ -163,19 +175,16 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     } 
     else if (isMoving) {
       if (playerState.hasCrowbar) {
-        // 🔪 ARMED MOVEMENT
         if (keys.current.w) nextAction = 'walkforwardmelee'
         else if (keys.current.s) nextAction = 'walkbackmelee' 
         else if (keys.current.a) nextAction = 'walkleftmelee' 
         else if (keys.current.d) nextAction = 'walkrightmelee' 
       } else {
-        // 🚶 UNARMED MOVEMENT
         if (keys.current.w || keys.current.s) nextAction = 'Walk'
         else if (keys.current.a) nextAction = 'leftstrafe' 
         else if (keys.current.d) nextAction = 'rightwalking' 
       }
     } else {
-      // 🧍 IDLE STATE
       nextAction = playerState.hasCrowbar ? 'standingidlemelee' : 'Idle'
     }
     
@@ -186,7 +195,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
       meshGroupRef.current.rotation.y = Math.atan2(forward.x, forward.z)
     }
 
-    // FPS Weapon Rendering Logic
     if (weaponContainerRef.current && weaponMeshRef.current) {
       const showWeapon = !!playerState.hasCrowbar && playerState.mode === 'fpp' && !playerState.isSitting
       weaponContainerRef.current.visible = showWeapon
@@ -203,7 +211,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
         weaponContainerRef.current.translateZ(-0.4)
 
         if (isAttackingRef.current) {
-          // FPP camera swing math
           const progress = attackTimeRef.current / attackDuration
           const swing = Math.sin(progress * Math.PI) * 1.5 
           weaponMeshRef.current.rotation.x = (-Math.PI / 2) - swing 
