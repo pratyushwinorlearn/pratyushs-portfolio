@@ -139,7 +139,11 @@ export default function MobileFallback() {
           <div style={styles.oledPinLabels}>GND &nbsp; VCC &nbsp; SCL &nbsp; SDA</div>
 
           <div style={styles.screen}>
-            <div style={styles.ribbonCable}></div>
+            {/* 🗑️ REMOVED: ribbonCable — its transformed ancestor
+                (.sliderTrack) trapped the cat's z-index inside a new
+                stacking context, so the ribbon (an untransformed
+                sibling with explicit z-index) always painted above the
+                cat regardless of the cat's own z-index value. */}
 
             {/* Sliding Container for Screen Content */}
             <div style={{
@@ -439,17 +443,6 @@ const styles = {
     position: 'relative',
     flexShrink: 0,
     padding: '4px'
-  },
-  ribbonCable: {
-    position: 'absolute',
-    bottom: 0,
-    left: '70px',
-    width: '80px',
-    height: '18px',
-    backgroundColor: '#111',
-    borderTop: '2px solid #222',
-    backgroundImage: 'repeating-linear-gradient(45deg, #111, #111 2px, #1a1a1a 2px, #1a1a1a 4px)',
-    zIndex: 3
   },
   textContent: {
     color: '#00ffcc', 
