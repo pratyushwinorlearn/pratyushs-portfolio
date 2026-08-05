@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 export default function MobileFallback() {
   const [text, setText] = useState('');
   const [socialText, setSocialText] = useState('');
-  const [currentScreen, setCurrentScreen] = useState('main');
+  const [currentScreen, setCurrentScreen] = useState('main'); // 'main' or 'social'
   
   const mainText = "> ERR_RESOLUTION\n> MOBILE DEVICE DETECTED.\n> PLEASE OPEN ON PC.";
   const socialTextContent = "CONNECT WITH ME ON:";
 
+  // Typewriter effect for main screen
   useEffect(() => {
     let currentIndex = 0;
     const interval = setInterval(() => {
@@ -21,6 +22,7 @@ export default function MobileFallback() {
     return () => clearInterval(interval);
   }, []);
 
+  // Typewriter effect for social screen
   useEffect(() => {
     let currentIndex = 0;
     const interval = setInterval(() => {
@@ -99,7 +101,10 @@ export default function MobileFallback() {
         }
       `}</style>
 
+      {/* Circuit Workspace Container */}
       <div style={styles.circuitWrapper}>
+        
+        {/* 🔲 REALISTIC ESP32 MODULE */}
         <div style={styles.espBoard}>
           <div style={styles.shieldCan}>
             <div style={styles.shieldText}>ESP-32</div>
@@ -113,6 +118,7 @@ export default function MobileFallback() {
           <div style={styles.powerLed}></div>
         </div>
 
+        {/* ⚡ REALISTIC JUMPER WIRES */}
         <svg style={styles.wireSvg} width="320" height="340">
           <path d="M 100 85 C 100 130, 80 140, 80 195" stroke="#222" strokeWidth="3.5" fill="none" strokeLinecap="round" />
           <path d="M 118 85 C 118 135, 105 140, 103 195" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
@@ -120,10 +126,12 @@ export default function MobileFallback() {
           <path d="M 212 85 C 212 145, 235 145, 238 195" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
         </svg>
 
+        {/* 🔌 Header Socket Block */}
         <div style={styles.headerSocket}>
           <div style={styles.socketHoles}></div>
         </div>
 
+        {/* 🖥️ REALISTIC BLUE OLED MODULE WITH CLEAN SLIDING NAVIGATION */}
         <div style={styles.oledModule}>
           <div style={{...styles.mountHole, top: '8px', left: '8px'}}></div>
           <div style={{...styles.mountHole, top: '8px', right: '8px'}}></div>
@@ -133,11 +141,13 @@ export default function MobileFallback() {
           <div style={styles.screen}>
             <div style={styles.ribbonCable}></div>
 
+            {/* Sliding Container for Screen Content */}
             <div style={{
               ...styles.sliderTrack,
               transform: currentScreen === 'main' ? 'translateX(0px)' : 'translateX(-220px)',
             }}>
               
+              {/* --- SCREEN 1: WARNING & CAT --- */}
               <div style={styles.screenPane}>
                 <div style={styles.textContent}>
                   {text}
@@ -165,41 +175,52 @@ export default function MobileFallback() {
                   </div>
                 </div>
 
-                <div 
-                  className="nav-arrow" 
-                  style={styles.rightArrow}
-                  onClick={() => setCurrentScreen('social')}
-                  title="Connect"
-                >
-                  &gt;
-                </div>
+                {/* Right Arrow Button (Only renders on main screen) */}
+                {currentScreen === 'main' && (
+                  <div 
+                    className="nav-arrow" 
+                    style={styles.rightArrow}
+                    onClick={() => setCurrentScreen('social')}
+                    title="Connect"
+                  >
+                    &gt;
+                  </div>
+                )}
               </div>
 
+              {/* --- SCREEN 2: SOCIAL LINKS --- */}
               <div style={styles.screenPane}>
                 <div style={styles.textContent}>
                   {socialText}
                 </div>
 
+                {/* Social Icons Row */}
                 <div style={styles.socialIconsContainer}>
+                  {/* GitHub */}
                   <a href="https://github.com/pratyushwinorlearn" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="GitHub">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
                   </a>
+                  {/* LinkedIn */}
                   <a href="https://www.linkedin.com/in/shekhar-pratyush-445362327" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="LinkedIn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
                   </a>
+                  {/* Instagram */}
                   <a href="https://www.instagram.com/shekhardgaf" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="Instagram">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                   </a>
                 </div>
 
-                <div 
-                  className="nav-arrow" 
-                  style={styles.leftArrow}
-                  onClick={() => setCurrentScreen('main')}
-                  title="Back"
-                >
-                  &lt;
-                </div>
+                {/* Left Arrow Button (Only renders on social screen) */}
+                {currentScreen === 'social' && (
+                  <div 
+                    className="nav-arrow" 
+                    style={styles.leftArrow}
+                    onClick={() => setCurrentScreen('main')}
+                    title="Back"
+                  >
+                    &lt;
+                  </div>
+                )}
               </div>
 
             </div>
