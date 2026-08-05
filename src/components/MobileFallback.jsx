@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function MobileFallback() {
   const [text, setText] = useState('');
@@ -6,6 +6,12 @@ export default function MobileFallback() {
   
   const fullText = "> ERR_RESOLUTION\n> MOBILE DEVICE DETECTED.\n> PLEASE OPEN ON PC.";
   const fullSocialText = "CONNECT WITH ME ON:";
+
+  // Drag-to-pan state
+  const [translateY, setTranslateY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startYRef = useRef(0);
+  const currentTranslateRef = useRef(0);
 
   // Typewriter effect for first screen
   useEffect(() => {
@@ -35,8 +41,48 @@ export default function MobileFallback() {
     return () => clearInterval(interval);
   }, []);
 
+  // Drag handlers for touch & mouse
+  const handleDragStart = (clientY) => {
+    setIsDragging(true);
+    startYRef.current = clientY - currentTranslateRef.current;
+  };
+
+  const handleDragMove = (clientY) => {
+    if (!isDragging) return;
+    const deltaY = clientY - startYRef.current;
+    const screenHeight = window.innerHeight;
+    
+    // Clamp movement between 0 (top screen) and -screenHeight (bottom screen)
+    let newTranslate = Math.max(-screenHeight, Math.min(0, deltaY));
+    currentTranslateRef.current = newTranslate;
+    setTranslateY(newTranslate);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const screenHeight = window.innerHeight;
+
+    // Snap to nearest screen based on threshold
+    if (currentTranslateRef.current < -screenHeight / 3) {
+      currentTranslateRef.current = -screenHeight;
+      setTranslateY(-screenHeight);
+    } else {
+      currentTranslateRef.current = 0;
+      setTranslateY(0);
+    }
+  };
+
   return (
-    <div style={styles.pageContainer}>
+    <div 
+      style={styles.pageContainer}
+      onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
+      onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
+      onTouchEnd={handleDragEnd}
+      onMouseDown={(e) => handleDragStart(e.clientY)}
+      onMouseMove={(e) => handleDragMove(e.clientY)}
+      onMouseUp={handleDragEnd}
+    >
       <style>{`
         @keyframes blink {
           0%, 100% { opacity: 1; }
@@ -59,7 +105,7 @@ export default function MobileFallback() {
         }
         @keyframes bounceArrow {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(6px); }
+          50% { transform: translateY(5px); }
         }
         .cursor {
           display: inline-block;
@@ -82,7 +128,7 @@ export default function MobileFallback() {
           transform-origin: bottom left;
           animation: tailWag 0.6s ease-in-out infinite;
         }
-        .scroll-indicator {
+        .drag-indicator {
           animation: bounceArrow 1.5s infinite ease-in-out;
         }
         .social-icon {
@@ -94,156 +140,170 @@ export default function MobileFallback() {
         }
       `}</style>
 
-      {/* --- SECTION 1: WARNING SCREEN --- */}
-      <section style={styles.section}>
-        <div style={styles.circuitWrapper}>
-          
-          {/* 🔲 REALISTIC ESP32 MODULE */}
-          <div style={styles.espBoard}>
-            <div style={styles.shieldCan}>
-              <div style={styles.shieldText}>ESP-32</div>
-              <div style={styles.wifiLogo}>WiFi · BT</div>
-            </div>
-            <div style={styles.bootButton}></div>
-            <div style={styles.enButton}></div>
-            <div style={styles.usbPort}></div>
-            <div style={styles.pinHeaderLeft}></div>
-            <div style={styles.pinHeaderRight}></div>
-            <div style={styles.powerLed}></div>
-          </div>
+      {/* Sliding Track for Free Dragging */}
+      <div style={{
+        ...styles.slidingTrack,
+        transform: `translateY(${translateY}px)`,
+        transition: isDragging ? 'none' : 'transform 0.35s cubic-bezier(0.1, 0.9, 0.2, 1)'
+      }}>
 
-          {/* ⚡ REALISTIC JUMPER WIRES */}
-          <svg style={styles.wireSvg} width="320" height="340">
-            <path d="M 100 85 C 100 130, 80 140, 80 195" stroke="#222" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M 118 85 C 118 135, 105 140, 103 195" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M 195 85 C 195 130, 210 140, 215 195" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M 212 85 C 212 145, 235 145, 238 195" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          </svg>
-
-          {/* 🔌 Header Socket Block */}
-          <div style={styles.headerSocket}>
-            <div style={styles.socketHoles}></div>
-          </div>
-
-          {/* 🖥️ REALISTIC BLUE OLED MODULE */}
-          <div style={styles.oledModule}>
-            <div style={{...styles.mountHole, top: '8px', left: '8px'}}></div>
-            <div style={{...styles.mountHole, top: '8px', right: '8px'}}></div>
+        {/* --- SECTION 1: WARNING SCREEN --- */}
+        <section style={styles.section}>
+          <div style={styles.circuitWrapper}>
             
-            <div style={styles.oledPinLabels}>GND &nbsp; VCC &nbsp; SCL &nbsp; SDA</div>
-
-            <div style={styles.screen}>
-              <div style={styles.ribbonCable}></div>
-              <div style={styles.chipOnGlass}>283</div>
-
-              <div style={styles.textContent}>
-                {text}
-                <span className="cursor"></span>
+            {/* 🔲 REALISTIC ESP32 MODULE */}
+            <div style={styles.espBoard}>
+              <div style={styles.shieldCan}>
+                <div style={styles.shieldText}>ESP-32</div>
+                <div style={styles.wifiLogo}>WiFi · BT</div>
               </div>
+              <div style={styles.bootButton}></div>
+              <div style={styles.enButton}></div>
+              <div style={styles.usbPort}></div>
+              <div style={styles.pinHeaderLeft}></div>
+              <div style={styles.pinHeaderRight}></div>
+              <div style={styles.powerLed}></div>
+            </div>
 
-              {/* 🐱 SYMMETRICALLY PATROLLING PIXEL CAT */}
-              <div style={styles.catContainer}>
-                <div className="cat-walker">
-                  <div className="pixel-cat">
-                    <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="8" y="10" width="12" height="10" fill="#00ffcc" />
-                      <rect x="12" y="4" width="10" height="8" fill="#00ffcc" />
-                      <path d="M12 4L10 1H13L14 4H12Z" fill="#00ffcc" />
-                      <path d="M20 4L22 1H19L18 4H20Z" fill="#00ffcc" />
-                      <rect x="14" y="6" width="2" height="2" fill="#02050a" />
-                      <rect x="18" y="6" width="2" height="2" fill="#02050a" />
-                      <g className="cat-tail">
-                        <rect x="6" y="12" width="3" height="2" fill="#00ffcc" />
-                        <rect x="4" y="10" width="2" height="3" fill="#00ffcc" />
-                      </g>
-                      <rect x="10" y="20" width="2" height="2" fill="#00ffcc" />
-                      <rect x="16" y="20" width="2" height="2" fill="#00ffcc" />
-                    </svg>
+            {/* ⚡ REALISTIC JUMPER WIRES */}
+            <svg style={styles.wireSvg} width="320" height="340">
+              <path d="M 100 85 C 100 130, 80 140, 80 195" stroke="#222" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              <path d="M 118 85 C 118 135, 105 140, 103 195" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              <path d="M 195 85 C 195 130, 210 140, 215 195" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              <path d="M 212 85 C 212 145, 235 145, 238 195" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            </svg>
+
+            {/* 🔌 Header Socket Block */}
+            <div style={styles.headerSocket}>
+              <div style={styles.socketHoles}></div>
+            </div>
+
+            {/* 🖥️ REALISTIC BLUE OLED MODULE */}
+            <div style={styles.oledModule}>
+              <div style={{...styles.mountHole, top: '8px', left: '8px'}}></div>
+              <div style={{...styles.mountHole, top: '8px', right: '8px'}}></div>
+              
+              <div style={styles.oledPinLabels}>GND &nbsp; VCC &nbsp; SCL &nbsp; SDA</div>
+
+              <div style={styles.screen}>
+                <div style={styles.ribbonCable}></div>
+                <div style={styles.chipOnGlass}>283</div>
+
+                <div style={styles.textContent}>
+                  {text}
+                  <span className="cursor"></span>
+                </div>
+
+                {/* 🐱 SYMMETRICALLY PATROLLING PIXEL CAT */}
+                <div style={styles.catContainer}>
+                  <div className="cat-walker">
+                    <div className="pixel-cat">
+                      <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="8" y="10" width="12" height="10" fill="#00ffcc" />
+                        <rect x="12" y="4" width="10" height="8" fill="#00ffcc" />
+                        <path d="M12 4L10 1H13L14 4H12Z" fill="#00ffcc" />
+                        <path d="M20 4L22 1H19L18 4H20Z" fill="#00ffcc" />
+                        <rect x="14" y="6" width="2" height="2" fill="#02050a" />
+                        <rect x="18" y="6" width="2" height="2" fill="#02050a" />
+                        <g className="cat-tail">
+                          <rect x="6" y="12" width="3" height="2" fill="#00ffcc" />
+                          <rect x="4" y="10" width="2" height="3" fill="#00ffcc" />
+                        </g>
+                        <rect x="10" y="20" width="2" height="2" fill="#00ffcc" />
+                        <rect x="16" y="20" width="2" height="2" fill="#00ffcc" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
+
               </div>
-
             </div>
+
           </div>
 
-        </div>
-
-        {/* Scroll Prompt */}
-        <div style={styles.scrollPrompt}>
-          <span style={{ fontSize: '0.85rem', letterSpacing: '1px' }}>SCROLL FOR LINKS</span>
-          <div className="scroll-indicator" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>↓</div>
-        </div>
-      </section>
-
-      {/* --- SECTION 2: SOCIAL LINKS SCREEN --- */}
-      <section style={styles.section}>
-        <div style={styles.circuitWrapper}>
-          
-          {/* 🔲 REALISTIC ESP32 MODULE */}
-          <div style={styles.espBoard}>
-            <div style={styles.shieldCan}>
-              <div style={styles.shieldText}>ESP-32</div>
-              <div style={styles.wifiLogo}>WiFi · BT</div>
-            </div>
-            <div style={styles.bootButton}></div>
-            <div style={styles.enButton}></div>
-            <div style={styles.usbPort}></div>
-            <div style={styles.pinHeaderLeft}></div>
-            <div style={styles.pinHeaderRight}></div>
-            <div style={styles.powerLed}></div>
+          {/* Fully Visible Drag Prompt */}
+          <div style={styles.dragPrompt}>
+            <span style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>DRAG TO EXPLORE</span>
+            <div className="drag-indicator" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>↓</div>
           </div>
+        </section>
 
-          {/* ⚡ REALISTIC JUMPER WIRES */}
-          <svg style={styles.wireSvg} width="320" height="340">
-            <path d="M 100 85 C 100 130, 80 140, 80 195" stroke="#222" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M 118 85 C 118 135, 105 140, 103 195" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M 195 85 C 195 130, 210 140, 215 195" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M 212 85 C 212 145, 235 145, 238 195" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          </svg>
-
-          {/* 🔌 Header Socket Block */}
-          <div style={styles.headerSocket}>
-            <div style={styles.socketHoles}></div>
-          </div>
-
-          {/* 🖥️ REALISTIC BLUE OLED MODULE (SOCIALS) */}
-          <div style={styles.oledModule}>
-            <div style={{...styles.mountHole, top: '8px', left: '8px'}}></div>
-            <div style={{...styles.mountHole, top: '8px', right: '8px'}}></div>
+        {/* --- SECTION 2: SOCIAL LINKS SCREEN --- */}
+        <section style={styles.section}>
+          <div style={styles.circuitWrapper}>
             
-            <div style={styles.oledPinLabels}>GND &nbsp; VCC &nbsp; SCL &nbsp; SDA</div>
-
-            <div style={styles.screen}>
-              <div style={styles.ribbonCable}></div>
-              <div style={styles.chipOnGlass}>283</div>
-
-              <div style={styles.textContent}>
-                {socialText}
-                <span className="cursor"></span>
+            {/* 🔲 REALISTIC ESP32 MODULE */}
+            <div style={styles.espBoard}>
+              <div style={styles.shieldCan}>
+                <div style={styles.shieldText}>ESP-32</div>
+                <div style={styles.wifiLogo}>WiFi · BT</div>
               </div>
-
-              {/* 🌐 CUSTOM INLINE SVG SOCIAL ICONS ROW */}
-              <div style={styles.socialIconsContainer}>
-                {/* GitHub */}
-                <a href="https://github.com/pratyushwinorlearn" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="GitHub">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
-                </a>
-                {/* LinkedIn */}
-                <a href="https://www.linkedin.com/in/shekhar-pratyush-445362327" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="LinkedIn">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-                </a>
-                {/* Instagram */}
-                <a href="https://www.instagram.com/shekhardgaf" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="Instagram">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                </a>
-              </div>
-
+              <div style={styles.bootButton}></div>
+              <div style={styles.enButton}></div>
+              <div style={styles.usbPort}></div>
+              <div style={styles.pinHeaderLeft}></div>
+              <div style={styles.pinHeaderRight}></div>
+              <div style={styles.powerLed}></div>
             </div>
+
+            {/* ⚡ REALISTIC JUMPER WIRES */}
+            <svg style={styles.wireSvg} width="320" height="340">
+              <path d="M 100 85 C 100 130, 80 140, 80 195" stroke="#222" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              <path d="M 118 85 C 118 135, 105 140, 103 195" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              <path d="M 195 85 C 195 130, 210 140, 215 195" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              <path d="M 212 85 C 212 145, 235 145, 238 195" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            </svg>
+
+            {/* 🔌 Header Socket Block */}
+            <div style={styles.headerSocket}>
+              <div style={styles.socketHoles}></div>
+            </div>
+
+            {/* 🖥️ REALISTIC BLUE OLED MODULE (SOCIALS) */}
+            <div style={styles.oledModule}>
+              <div style={{...styles.mountHole, top: '8px', left: '8px'}}></div>
+              <div style={{...styles.mountHole, top: '8px', right: '8px'}}></div>
+              
+              <div style={styles.oledPinLabels}>GND &nbsp; VCC &nbsp; SCL &nbsp; SDA</div>
+
+              <div style={styles.screen}>
+                <div style={styles.ribbonCable}></div>
+                <div style={styles.chipOnGlass}>283</div>
+
+                <div style={styles.textContent}>
+                  {socialText}
+                  <span className="cursor"></span>
+                </div>
+
+                {/* 🌐 CUSTOM INLINE SVG SOCIAL ICONS ROW */}
+                <div style={styles.socialIconsContainer}>
+                  {/* GitHub */}
+                  <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="GitHub">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+                  </a>
+                  {/* LinkedIn */}
+                  <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="LinkedIn">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                  </a>
+                  {/* Instagram */}
+                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-icon" style={styles.iconLink} title="Instagram">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                  </a>
+                </div>
+
+              </div>
+            </div>
+
           </div>
 
-        </div>
-      </section>
+          {/* Back up Prompt */}
+          <div style={styles.dragPrompt}>
+            <div className="drag-indicator" style={{ fontSize: '1.1rem', fontWeight: 'bold', transform: 'rotate(180deg)' }}>↓</div>
+            <span style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>DRAG UP</span>
+          </div>
+        </section>
 
+      </div>
     </div>
   );
 }
@@ -252,16 +312,23 @@ const styles = {
   pageContainer: {
     width: '100vw',
     height: '100vh',
-    overflowY: 'scroll',
-    scrollSnapType: 'y mandatory',
+    overflow: 'hidden',
     backgroundColor: '#f4f4f4',
     backgroundImage: 'radial-gradient(#b0b0b0 2px, transparent 2px)',
     backgroundSize: '20px 20px',
+    position: 'relative',
+    userSelect: 'none',
+    touchAction: 'none'
+  },
+  slidingTrack: {
+    width: '100vw',
+    height: '200vh',
+    display: 'flex',
+    flexDirection: 'column'
   },
   section: {
     width: '100vw',
     height: '100vh',
-    scrollSnapAlign: 'start',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -271,10 +338,11 @@ const styles = {
   circuitWrapper: {
     position: 'relative',
     width: '320px',
-    height: '400px',
+    height: '370px',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginTop: '-40px'
   },
   espBoard: {
     position: 'absolute',
@@ -489,15 +557,15 @@ const styles = {
     left: '12px',
     zIndex: 4
   },
-  scrollPrompt: {
+  dragPrompt: {
     position: 'absolute',
-    bottom: '20px',
+    bottom: '25px',
     left: '50%',
     transform: 'translateX(-50%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    color: '#888',
+    color: '#777',
     fontFamily: 'monospace',
     pointerEvents: 'none'
   },
