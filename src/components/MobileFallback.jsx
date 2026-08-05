@@ -35,33 +35,33 @@ export default function MobileFallback() {
           50% { opacity: 0.3; box-shadow: 0 0 2px #00ffcc; }
         }
         
-        /* 🐱 Cat Path & Action Timeline (8s total cycle) */
+        /* 🐱 Smooth Cat Movement & Jump Timeline (8s cycle) */
         @keyframes catAction {
           0% { transform: translateX(0px) scaleX(1); }
-          34% { transform: translateX(148px) scaleX(1); }
-          38% { transform: translateX(153px) translateY(-5px) scaleX(1); } /* Jump into arms */
-          42% { transform: translateX(153px) translateY(-2px) scaleX(1); } /* Held */
-          65% { transform: translateX(153px) translateY(-2px) scaleX(1); } /* Hold ends */
-          69% { transform: translateX(148px) translateY(0px) scaleX(-1); } /* Let go & turn left */
+          33% { transform: translateX(142px) scaleX(1); }
+          37% { transform: translateX(148px) translateY(-10px) scaleX(1); } /* Smooth leap into arms */
+          41% { transform: translateX(148px) translateY(-7px) scaleX(1); }  /* Held snugly */
+          63% { transform: translateX(148px) translateY(-7px) scaleX(1); }  /* Hold ends */
+          67% { transform: translateX(142px) translateY(0px) scaleX(-1); } /* Grounded & turns left */
           98% { transform: translateX(0px) translateY(0px) scaleX(-1); }
           100% { transform: translateX(0px) translateY(0px) scaleX(1); }
         }
 
-        @keyframes catBounce {
+        @keyframes catBob {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
+          50% { transform: translateY(-2px); }
         }
 
         @keyframes tailWag {
           0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(-15deg); }
+          50% { transform: rotate(-20deg); }
         }
 
-        /* 🧑 Human Arms Reaching Out & Catching Timeline */
+        /* 🧑 Human Arms Reaching Out & Catching Motion */
         @keyframes humanArms {
-          0%, 30% { transform: translateX(0px); }
-          36%, 67% { transform: translateX(-5px); } /* Reached out / holding */
-          72%, 100% { transform: translateX(0px); } /* Retracted */
+          0%, 28% { transform: translateX(0px); }
+          35%, 65% { transform: translateX(-6px); } /* Reaches out and cradles */
+          71%, 100% { transform: translateX(0px); }
         }
 
         .cursor {
@@ -75,18 +75,18 @@ export default function MobileFallback() {
           box-shadow: 0 0 4px #00ffcc;
         }
         .cat-animator {
-          animation: catAction 8s ease-in-out infinite;
+          animation: catAction 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
-        .pixel-cat {
-          animation: catBounce 0.35s ease-in-out infinite;
+        .smooth-cat {
+          animation: catBob 0.3s ease-in-out infinite;
           display: inline-block;
         }
         .cat-tail {
-          transform-origin: bottom left;
+          transform-origin: 5px 12px;
           animation: tailWag 0.6s ease-in-out infinite;
         }
         .human-reaching-arms {
-          animation: humanArms 8s ease-in-out infinite;
+          animation: humanArms 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
           transform-origin: right center;
         }
       `}</style>
@@ -137,46 +137,40 @@ export default function MobileFallback() {
               <span className="cursor"></span>
             </div>
 
-            {/* 🧑 HUMAN CHARACTER WAITING ON THE RIGHT */}
+            {/* 🧑 SLEEK VECTOR HUMAN (Double the height of the cat) */}
             <div style={styles.humanContainer}>
-              <svg width="20" height="26" viewBox="0 0 20 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="16" height="36" viewBox="0 0 16 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Head */}
-                <rect x="6" y="2" width="8" height="8" fill="#00ffcc" />
+                <circle cx="8" cy="4" r="3.5" fill="#00ffcc" />
                 {/* Torso */}
-                <rect x="5" y="10" width="10" height="10" fill="#00ffcc" />
+                <path d="M4 9C4 8.44772 4.44772 8 5 8H11C11.5523 8 12 8.44772 12 9V22C12 22.5523 11.5523 23 11 23H5C4.44772 23 4 22.5523 4 22V9Z" fill="#00ffcc" />
                 {/* Legs */}
-                <rect x="6" y="20" width="3" height="6" fill="#00ffcc" />
-                <rect x="11" y="20" width="3" height="6" fill="#00ffcc" />
+                <line x1="5.5" y1="23" x2="5.5" y2="34" stroke="#00ffcc" strokeWidth="2.5" strokeLinecap="round" />
+                <line x1="10.5" y1="23" x2="10.5" y2="34" stroke="#00ffcc" strokeWidth="2.5" strokeLinecap="round" />
                 {/* Reaching Arms Group */}
                 <g className="human-reaching-arms">
-                  <rect x="1" y="11" width="5" height="3" fill="#00ffcc" />
+                  <path d="M4 11L-1 14" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" />
                 </g>
               </svg>
             </div>
 
-            {/* 🐱 WALKING & JUMPING CAT */}
+            {/* 🐱 SLEEK VECTOR CAT */}
             <div style={styles.catContainer}>
               <div className="cat-animator">
-                <div className="pixel-cat">
-                  <svg width="26" height="22" viewBox="0 0 26 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Cat Body */}
-                    <rect x="7" y="9" width="12" height="9" fill="#00ffcc" />
-                    {/* Cat Head */}
-                    <rect x="11" y="3" width="9" height="8" fill="#00ffcc" />
-                    {/* Ears */}
-                    <path d="M11 3L9 0H12L13 3H11Z" fill="#00ffcc" />
-                    <path d="M18 3L20 0H17L16 3H18Z" fill="#00ffcc" />
-                    {/* Eyes */}
-                    <rect x="13" y="5" width="2" height="2" fill="#02050a" />
-                    <rect x="16" y="5" width="2" height="2" fill="#02050a" />
+                <div className="smooth-cat">
+                  <svg width="30" height="18" viewBox="0 0 30 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                     {/* Tail */}
-                    <g className="cat-tail">
-                      <rect x="5" y="11" width="3" height="2" fill="#00ffcc" />
-                      <rect x="3" y="9" width="2" height="3" fill="#00ffcc" />
-                    </g>
-                    {/* Paws */}
-                    <rect x="9" y="18" width="2" height="2" fill="#00ffcc" />
-                    <rect x="15" y="18" width="2" height="2" fill="#00ffcc" />
+                    <path d="M6 12C4 12 2 8 3 4C3.5 2 5 1 6 2" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" className="cat-tail" />
+                    {/* Body */}
+                    <ellipse cx="14" cy="11" rx="7" ry="4.5" fill="#00ffcc" />
+                    {/* Head */}
+                    <circle cx="20" cy="8" r="4.5" fill="#00ffcc" />
+                    {/* Ears */}
+                    <path d="M17 5L15.5 1.5H18L19 4.5Z" fill="#00ffcc" />
+                    <path d="M22 5L23.5 1.5H21L20 4.5Z" fill="#00ffcc" />
+                    {/* Legs */}
+                    <line x1="10" y1="14" x2="10" y2="17" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" />
+                    <line x1="17" y1="14" x2="17" y2="17" stroke="#00ffcc" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                 </div>
               </div>
@@ -427,7 +421,7 @@ const styles = {
   humanContainer: {
     position: 'absolute',
     bottom: '6px',
-    right: '12px',
+    right: '15px',
     zIndex: 3
   }
 };
