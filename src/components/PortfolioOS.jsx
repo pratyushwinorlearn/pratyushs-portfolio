@@ -236,7 +236,10 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
               {windows.map((win) => (
                 <Rnd
                   key={win.id}
-                  size={{ width: win.isMaximized ? 1000 : (win.width || 900), height: win.isMaximized ? 700 : (win.height || 600) }}
+                  size={{ 
+                    width: win.isMaximized ? '100%' : (win.width || 900), 
+                    height: win.isMaximized ? '100%' : (win.height || 600) 
+                  }}
                   position={{ x: win.isMaximized ? 0 : win.x, y: win.isMaximized ? 0 : win.y }}
                   onDragStop={(e, d) => { if (!win.isMaximized) updateWindow(win.id, { x: d.x, y: d.y }) }}
                   onResizeStop={(e, direction, ref, delta, position) => {
