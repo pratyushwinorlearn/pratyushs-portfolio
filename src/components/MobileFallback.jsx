@@ -71,7 +71,7 @@ export default function MobileFallback() {
       {/* Circuit Workspace Container */}
       <div style={styles.circuitWrapper}>
         
-        {/* 🔲 REAL ESP32 BOARD IMAGE */}
+        {/* 🔲 LARGER HORIZONTAL ESP32 BOARD IMAGE */}
         <div style={styles.espContainer}>
           <img 
             src="/esp32.png" 
@@ -80,16 +80,16 @@ export default function MobileFallback() {
           />
         </div>
 
-        {/* ⚡ REALISTIC JUMPER WIRES CONNECTING ESP32 TO OLED */}
-        <svg style={styles.wireSvg} width="320" height="480">
+        {/* ⚡ PRECISELY ATTACHED JUMPER WIRES */}
+        <svg style={styles.wireSvg} width="340" height="520">
           {/* GND Wire (Black) */}
-          <path d="M 90 230 C 80 270, 70 280, 75 325" stroke="#111" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M 85 130 C 85 200, 75 240, 82 325" stroke="#111" strokeWidth="3.5" fill="none" strokeLinecap="round" />
           {/* VCC Wire (Red) */}
-          <path d="M 230 75 C 250 180, 230 250, 105 325" stroke="#d90429" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M 125 130 C 125 210, 95 240, 108 325" stroke="#d90429" strokeWidth="3.5" fill="none" strokeLinecap="round" />
           {/* SCL Wire (Yellow) */}
-          <path d="M 230 260 C 240 290, 160 290, 135 325" stroke="#ffb703" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M 215 130 C 215 210, 125 240, 134 325" stroke="#ffb703" strokeWidth="3.5" fill="none" strokeLinecap="round" />
           {/* SDA Wire (Blue) */}
-          <path d="M 230 245 C 250 280, 180 300, 165 325" stroke="#0077b5" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M 255 130 C 255 220, 150 250, 160 325" stroke="#0077b5" strokeWidth="3.5" fill="none" strokeLinecap="round" />
         </svg>
 
         {/* 🖥️ REALISTIC BLUE OLED MODULE */}
@@ -159,17 +159,17 @@ const styles = {
   },
   circuitWrapper: {
     position: 'relative',
-    width: '320px',
-    height: '500px',
+    width: '340px',
+    height: '540px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center'
   },
   espContainer: {
     position: 'absolute',
-    top: '10px',
-    width: '140px',
-    height: '300px',
+    top: '20px',
+    width: '300px',
+    height: '130px',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -179,7 +179,8 @@ const styles = {
   espImage: {
     width: '100%',
     height: '100%',
-    objectFit: 'contain'
+    objectFit: 'contain',
+    transform: 'rotate(90deg)' // Rotates the vertical chip image cleanly into a horizontal layout
   },
   wireSvg: {
     position: 'absolute',
@@ -191,7 +192,7 @@ const styles = {
   oledModule: {
     position: 'absolute',
     top: '320px',
-    left: '35px',
+    left: '45px',
     width: '250px',
     height: '160px',
     backgroundColor: '#1b3b6f',
