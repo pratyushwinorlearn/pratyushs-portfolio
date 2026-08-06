@@ -2,8 +2,8 @@ import React from 'react';
 
 export default function SdCardResume() {
   const handleDownload = () => {
-    // Replace with your actual resume PDF path
-    window.open('/public/files/resume.pdf', '_blank');
+    // FIXED: Removed '/public' because Vite serves this at the root on Vercel
+    window.open('/files/resume.pdf', '_blank');
   };
 
   return (
@@ -39,6 +39,7 @@ export default function SdCardResume() {
 
 const styles = {
   moduleWrapper: {
+    position: 'relative', 
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -48,7 +49,7 @@ const styles = {
   pcb: {
     width: '120px',
     height: '140px',
-    backgroundColor: '#0d2347', // Deep blue PCB
+    backgroundColor: '#0d2347', 
     borderRadius: '4px',
     border: '1px solid #07152b',
     boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
@@ -64,7 +65,7 @@ const styles = {
   sdSlot: {
     width: '90px',
     height: '110px',
-    backgroundColor: '#c0c0c0', // Silver metal housing
+    backgroundColor: '#c0c0c0', 
     border: '2px solid #999',
     borderRadius: '2px',
     boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.4)',
@@ -77,7 +78,7 @@ const styles = {
     height: '90px',
     backgroundColor: '#111',
     position: 'absolute',
-    bottom: '-15px', // Poking out
+    bottom: '-15px', 
     borderRadius: '2px 8px 2px 2px',
     border: '1px solid #333',
     boxShadow: '0 4px 6px rgba(0,0,0,0.6)',
