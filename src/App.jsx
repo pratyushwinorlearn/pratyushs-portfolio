@@ -10,8 +10,7 @@ import InteractiveChair from './components/InteractiveChair'
 import InteractiveSofa from './components/InteractiveSofa'
 import UserCursor from './components/UserCursor.jsx' 
 import InteractiveCrowbar from './components/InteractiveCrowbar.jsx'
-import MobileFallback from './components/MobileFallback.jsx'
-
+import MobilePortfolio from './components/mobile-portfolio/MobilePortfolio.jsx'
 function Moon() {
   const moonRef = useRef()
   const moonTexture = useTexture('/moon/textures/Material.002_diffuse.jpeg')
@@ -209,7 +208,7 @@ export default function App() {
   }, [isUIOpen, isLocked])
 
   if (isMobile) {
-    return <MobileFallback />
+    return <MobilePortfolio />
   }
 
   return (
