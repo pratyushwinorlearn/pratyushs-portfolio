@@ -36,6 +36,7 @@ export default function SdCardResume() {
       <div style={styles.pcb}>
         {/* PCB Traces/Styling */}
         <div style={styles.silkScreen}>MICRO_SD_SPI</div>
+        
         <div style={{...styles.mountHole, top: 4, left: 4}}></div>
         <div style={{...styles.mountHole, bottom: 4, left: 4}}></div>
         
@@ -103,7 +104,21 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center'
   },
-  silkScreen: { position: 'absolute', top: '10px', right: '-25px', color: '#fff', fontSize: '9px', fontFamily: 'monospace', transform: 'rotate(90deg)' },
+  
+  // FIXED: Adjusted 'left' to 113px to shift the text further right!
+  silkScreen: { 
+    position: 'absolute', 
+    top: '50%', 
+    left: '113px', 
+    color: '#fff', 
+    fontSize: '9px', 
+    fontFamily: 'monospace', 
+    transform: 'translate(-50%, -50%) rotate(90deg)', 
+    whiteSpace: 'nowrap',
+    letterSpacing: '1px',
+    opacity: 0.9
+  },
+  
   mountHole: { position: 'absolute', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#e0e0e0', border: '2px solid #b0b0b0', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)' },
   pins: { position: 'absolute', top: '-6px', display: 'flex', gap: '6px' },
   goldPin: { width: '6px', height: '12px', backgroundColor: '#ffd700', borderRadius: '1px', border: '1px solid #b8860b' },
