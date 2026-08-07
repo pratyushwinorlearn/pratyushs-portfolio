@@ -54,7 +54,7 @@ const styles = {
   
   glassScreen: { width: '320px', height: '40px', backgroundColor: '#2b0005', border: 'inset 2px #0a0a0a', borderRadius: '3px', position: 'relative', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: 'inset 0 0 15px rgba(255,0,0,0.2)' },
   
-  text: { color: '#ff2a5f', fontFamily: '"Courier New", Courier, monospace', fontSize: '16px', fontWeight: 'bold', letterSpacing: '2px', whiteSpace: 'nowrap', zIndex: 1 },
+  text: { color: '#ff2a5f', fontFamily: '"Courier New", Courier, monospace', fontSize: '22px', fontWeight: 'bold', letterSpacing: '2px', whiteSpace: 'nowrap', zIndex: 1 },
   
   // This overlay puts tiny black dots over the text to make it look like a real LED matrix board
   dotMatrixOverlay: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundImage: 'radial-gradient(rgba(0,0,0,0.85) 1px, transparent 1px)', backgroundSize: '3px 3px', zIndex: 2, pointerEvents: 'none' }
