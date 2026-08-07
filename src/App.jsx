@@ -11,6 +11,7 @@ import InteractiveSofa from './components/InteractiveSofa'
 import UserCursor from './components/UserCursor.jsx' 
 import InteractiveCrowbar from './components/InteractiveCrowbar.jsx'
 import MobilePortfolio from './components/mobile-portfolio/MobilePortfolio.jsx'
+
 function Moon() {
   const moonRef = useRef()
   const moonTexture = useTexture('/moon/textures/Material.002_diffuse.jpeg')
@@ -162,16 +163,17 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
 }
 
 export default function App() {
-  const [isMobile, setIsMobile] = useState(false)
+  // FIXED: Changed to 1024px to ensure tablets get the 2D Breadboard UI
+  const [isMobileOrTablet, setIsMobileOrTablet] = useState(false)
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+    const checkDevice = () => {
+      setIsMobileOrTablet(window.innerWidth <= 1024)
     }
     
-    checkMobile() 
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    checkDevice() 
+    window.addEventListener('resize', checkDevice)
+    return () => window.removeEventListener('resize', checkDevice)
   }, [])
 
   const playerState = useRef(createPlayerState()).current
@@ -207,7 +209,8 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [isUIOpen, isLocked])
 
-  if (isMobile) {
+  // FIXED: Render MobilePortfolio for anything 1024px or smaller
+  if (isMobileOrTablet) {
     return <MobilePortfolio />
   }
 
