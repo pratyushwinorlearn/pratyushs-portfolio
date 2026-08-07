@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 
 export default function SkillsMatrix() {
   const [activeTab, setActiveTab] = useState(0);
+  
+  // Interaction state for the prompt
+  const [hasClicked, setHasClicked] = useState(false);
+
   const skills = [
     { cat: "LANG", items: "JAVA • PYTHON • C++" },
     { cat: "WEB", items: "NEXT.JS • NODE.JS • EXPRESS" },
@@ -12,13 +16,35 @@ export default function SkillsMatrix() {
   const topPins = ['RES', 'CS', 'DIN', 'VCC'];
   const bottomPins = ['DC', 'CLK', 'GND'];
 
+  // Central handler to hide prompt and stop canvas dragging
+  const handleButtonClick = (e, index) => {
+    e.stopPropagation();
+    if (!hasClicked) setHasClicked(true);
+    setActiveTab(index);
+  };
+
   return (
     <div style={styles.moduleWrapper}>
       
+      <style>{`
+        @keyframes bouncePrompt {
+          0%, 100% { transform: translateX(-50%) translateY(0); }
+          50% { transform: translateX(-50%) translateY(-4px); }
+        }
+      `}</style>
+
       {/* 🔴 BARE TACTILE BUTTONS (Green PCB Removed) */}
       <div style={styles.buttonBoard}>
+        
+        {/* Interactive Prompt */}
+        {!hasClicked && (
+          <div style={styles.buttonPrompt}>
+            click these ↓
+          </div>
+        )}
+
         {skills.map((skill, index) => (
-          <div key={index} style={styles.tactileWrapper} onPointerDown={() => setActiveTab(index)}>
+          <div key={index} style={styles.tactileWrapper} onPointerDown={(e) => handleButtonClick(e, index)}>
             
             <div style={styles.btnNumber}>0{index + 1}</div>
             
@@ -96,7 +122,11 @@ const styles = {
   moduleWrapper: { position: 'relative', display: 'flex', gap: '20px', alignItems: 'center', zIndex: 10 },
   
   // BUTTON BOARD STYLES
-  buttonBoard: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '30px', padding: '10px 0' },
+  buttonBoard: { position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '30px', padding: '10px 0' },
+  
+  // Bouncing Prompt Style
+  buttonPrompt: { position: 'absolute', top: '-20px', left: '50%', transform: 'translateX(-50%)', color: '#111', fontFamily: 'monospace', fontSize: '10px', fontWeight: 'bold', pointerEvents: 'none', zIndex: 20, whiteSpace: 'nowrap', animation: 'bouncePrompt 1.5s infinite', textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1)' },
+  
   tactileWrapper: { position: 'relative', width: '32px', height: '32px', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' },
   btnNumber: { position: 'absolute', left: '-18px', color: '#888', fontSize: '9px', fontFamily: 'monospace', fontWeight: 'bold' },
   leg: { position: 'absolute', width: '8px', height: '3px', backgroundColor: '#e0e0e0', border: '1px solid #999', borderRadius: '1px', boxShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 1 },

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 export default function ProjectsTftScreen() {
@@ -113,9 +113,11 @@ export default function ProjectsTftScreen() {
         <style>{`
           .glass-overlay { background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.4) 100%); }
           .view-btn:hover { color: #fff; text-shadow: 0 0 8px #00ffcc; transform: scale(1.05); }
-          @keyframes bouncePrompt {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+          
+          /* FIXED: Added translateX(-50%) directly to the keyframes to keep it mathematically centered */
+          @keyframes bouncePromptJoystick {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
           }
         `}</style>
 
@@ -211,7 +213,7 @@ export default function ProjectsTftScreen() {
                   backgroundColor: activeButton === 'A' ? '#666' : '#999'
                 }}></div>
               </div>
-              <div style={styles.silkscreenLabel}>#1</div>
+              <div style={styles.silkscreenLabel}>←</div>
             </div>
             <div style={styles.btnGroup}>
               <div style={styles.tactileBase} onPointerDown={(e) => handleButtonPress(e, 'B')}>
@@ -221,7 +223,7 @@ export default function ProjectsTftScreen() {
                   backgroundColor: activeButton === 'B' ? '#666' : '#999'
                 }}></div>
               </div>
-              <div style={styles.silkscreenLabel}>#2</div>
+              <div style={styles.silkscreenLabel}>→</div>
             </div>
           </div>
           <div style={{...styles.silkscreenLogo, fontSize: '12px'}}>✿</div>
@@ -291,8 +293,8 @@ const styles = {
   // Main PCB Board
   bonnetBoard: { width: '340px', height: '150px', backgroundColor: '#383838', borderRadius: '10px', border: '2px solid #222', boxShadow: '0 20px 40px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.1)', position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 10px', zIndex: 10, touchAction: 'none' },
   
-  // Joystick Prompt Indicator
-  joystickPrompt: { position: 'absolute', top: '-55px', left: '-5px', width: '100px', color: '#111', fontFamily: 'monospace', fontSize: '9px', fontWeight: 'bold', textAlign: 'center', pointerEvents: 'none', zIndex: 20, animation: 'bouncePrompt 1.5s infinite', textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1)' },
+  // FIXED: Set left to 45px (exact center of the 70px joystick section + 10px padding)
+  joystickPrompt: { position: 'absolute', top: '-55px', left: '45px', width: '120px', color: '#111', fontFamily: 'monospace', fontSize: '9px', fontWeight: 'bold', textAlign: 'center', pointerEvents: 'none', zIndex: 20, animation: 'bouncePromptJoystick 1.5s infinite', textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1)' },
   promptArrow: { fontSize: '18px', marginTop: '2px' },
 
   // Mounting Holes

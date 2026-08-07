@@ -3,6 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 export default function AwsCluster() {
   const [badgeIndex, setBadgeIndex] = useState(0);
   const [activeBtn, setActiveBtn] = useState(null);
+  
+  // Interaction state for the prompt
+  const [hasClicked, setHasClicked] = useState(false);
   const timerRef = useRef(null);
 
   const badges = [
@@ -30,6 +33,7 @@ export default function AwsCluster() {
 
   const handleNext = (e) => {
     e.stopPropagation();
+    if (!hasClicked) setHasClicked(true);
     setActiveBtn('NEXT');
     setBadgeIndex((prev) => (prev + 1) % badges.length);
     resetTimer();
@@ -38,6 +42,7 @@ export default function AwsCluster() {
 
   const handleVerify = (e) => {
     e.stopPropagation();
+    if (!hasClicked) setHasClicked(true);
     setActiveBtn('VERIFY');
     window.open(badges[badgeIndex].link, '_blank');
     setTimeout(() => setActiveBtn(null), 150);
@@ -50,6 +55,12 @@ export default function AwsCluster() {
       <style>{`
         @keyframes radarSpin { 100% { transform: rotate(360deg); } }
         @keyframes lcdFlicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+        
+        /* FIXED: Added translateX(-50%) to maintain center during the bounce */
+        @keyframes bouncePrompt {
+          0%, 100% { transform: translateX(-50%) translateY(0); }
+          50% { transform: translateX(-50%) translateY(-5px); }
+        }
       `}</style>
 
       {/* Intra-Cluster Local Wires connecting the 3 nodes */}
@@ -91,6 +102,14 @@ export default function AwsCluster() {
 
       {/* NODE 3: Action Buttons */}
       <div style={{...styles.nodeAction, top: 140, left: 160}}>
+        
+        {/* Interactive Prompt (Now perfectly centered at the bottom) */}
+        {!hasClicked && (
+          <div style={styles.buttonPrompt}>
+            ↑ click these to explore
+          </div>
+        )}
+
         <div style={{...styles.screw, top: 4, left: 4}}></div><div style={{...styles.screw, top: 4, right: 4}}></div>
         <div style={{...styles.screw, bottom: 4, left: 4}}></div><div style={{...styles.screw, bottom: 4, right: 4}}></div>
         
@@ -139,12 +158,16 @@ const styles = {
 
   // NODE 3: ACTION (Buttons)
   nodeAction: { position: 'absolute', width: '140px', height: '80px', backgroundColor: '#0f0f0f', borderRadius: '4px', border: '2px solid #142b1a', boxShadow: '0 8px 15px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 3 },
+  
+  // FIXED: Positioned at bottom, mathematically centered with left: 50%
+  buttonPrompt: { position: 'absolute', bottom: '-22px', left: '50%', color: '#111', fontFamily: 'monospace', fontSize: '10px', fontWeight: 'bold', pointerEvents: 'none', zIndex: 20, whiteSpace: 'nowrap', animation: 'bouncePrompt 1.5s infinite', textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1)' },
+  
   buttonsWrap: { display: 'flex', gap: '20px', alignItems: 'flex-end', marginTop: '4px' },
   btnCol: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
   
   btnSmall: { width: '20px', height: '20px', backgroundColor: '#888', border: '2px solid #444', borderRadius: '2px', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', boxShadow: '0 4px 0 #222' },
-  btnSmallPush: { width: '12px', height: '12px', backgroundColor: '#830101', borderRadius: '1px' },
+  btnSmallPush: { width: '12px', height: '12px', backgroundColor: '#830101', borderRadius: '1px', transition: 'transform 0.1s' },
   
   btnBig: { width: '36px', height: '36px', backgroundColor: '#d4d4d4', border: '2px solid #999', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', boxShadow: '0 4px 0 #666' },
-  btnBigPush: { width: '26px', height: '26px', backgroundColor: '#00065e', borderRadius: '50%', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)' }
+  btnBigPush: { width: '26px', height: '26px', backgroundColor: '#00065e', borderRadius: '50%', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)', transition: 'transform 0.1s' }
 };

@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function SdCardResume() {
+  const [hasClicked, setHasClicked] = useState(false);
+
   const handleDownload = () => {
+    // Hide prompt forever after first interaction
+    if (!hasClicked) setHasClicked(true);
+    
     // FIXED: Removed '/public' because Vite serves this at the root on Vercel
     window.open('/files/resume.pdf', '_blank');
   };
@@ -10,7 +15,23 @@ export default function SdCardResume() {
     <div style={styles.moduleWrapper} onPointerDown={handleDownload}>
       <style>{`
         .sd-hover:hover { transform: translateY(2px); filter: brightness(1.1); }
+        
+        /* Horizontal bouncing animation pointing to the right */
+        @keyframes bouncePromptLeft {
+          0%, 100% { transform: translateY(-50%) translateX(0); }
+          50% { transform: translateY(-50%) translateX(-5px); }
+        }
       `}</style>
+      
+      {/* Interactive Prompt */}
+      {!hasClicked && (
+        <div style={styles.sdPrompt}>
+          <div style={{ textAlign: 'right', lineHeight: '1.2' }}>
+            click anywhere to<br/>view & download
+          </div>
+          <div style={styles.promptArrow}>→</div>
+        </div>
+      )}
       
       <div style={styles.pcb}>
         {/* PCB Traces/Styling */}
@@ -46,6 +67,30 @@ const styles = {
     cursor: 'pointer',
     zIndex: 10
   },
+
+  // Interactive Prompt (Anchored to the left)
+  sdPrompt: { 
+    position: 'absolute', 
+    right: 'calc(100% + 15px)', // Places it safely outside the left edge of the PCB
+    top: '40%', // Aligns visually with the middle of the SD card
+    color: '#111', 
+    fontFamily: 'monospace', 
+    fontSize: '10px', 
+    fontWeight: 'bold', 
+    pointerEvents: 'none', 
+    zIndex: 20, 
+    whiteSpace: 'nowrap',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    animation: 'bouncePromptLeft 1.5s infinite', 
+    textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1)' 
+  },
+  promptArrow: { 
+    fontSize: '18px', 
+    paddingBottom: '2px' 
+  },
+
   pcb: {
     width: '120px',
     height: '140px',
