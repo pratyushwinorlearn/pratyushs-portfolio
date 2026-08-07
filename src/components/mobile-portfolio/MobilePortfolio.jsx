@@ -6,6 +6,7 @@ import ProjectsTftScreen from './ProjectsTftScreen';
 import SkillsMatrix from './SkillsMatrix';
 import SdCardResume from './SdCardResume';
 import WireManager from './WireManager';
+import LedHeading from './LedHeading';
 
 export default function MobilePortfolio() {
   const [position, setPosition] = useState({ x: -900, y: -700 });
@@ -75,6 +76,11 @@ export default function MobilePortfolio() {
         transform: `translate(${position.x}px, ${position.y}px)`,
       }}>
         <WireManager />
+
+        {/* CENTER: Main Brain, Heading & Socials */}
+        <div style={{ position: 'absolute', top: 880, left: 940 }}><LedHeading /></div>
+        <div style={{ position: 'absolute', top: 1000, left: 1000 }}><Esp32Brain /></div>
+        <div style={{ position: 'absolute', top: 1180, left: 980 }}><OledScreen /></div>
         
         {/* CENTER: Main Brain & Socials */}
         <div style={{ position: 'absolute', top: 1000, left: 1000 }}><Esp32Brain /></div>

@@ -6,6 +6,9 @@ export default function ProjectsTftScreen() {
   const [joystickPos, setJoystickPos] = useState({ x: 0, y: 0 });
   const [activeButton, setActiveButton] = useState(null);
   
+  // Joystick Prompt State
+  const [hasUsedJoystick, setHasUsedJoystick] = useState(false);
+  
   // Video Modal State
   const [showModal, setShowModal] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -28,6 +31,12 @@ export default function ProjectsTftScreen() {
   // --- JOYSTICK LOGIC ---
   const handlePointerDown = (e) => {
     e.stopPropagation();
+    
+    // Hide the prompt forever once they interact with the joystick
+    if (!hasUsedJoystick) {
+      setHasUsedJoystick(true);
+    }
+
     isDragging.current = true;
     startPos.current = { 
       x: e.clientX || (e.touches && e.touches[0].clientX), 
@@ -104,7 +113,19 @@ export default function ProjectsTftScreen() {
         <style>{`
           .glass-overlay { background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.4) 100%); }
           .view-btn:hover { color: #fff; text-shadow: 0 0 8px #00ffcc; transform: scale(1.05); }
+          @keyframes bouncePrompt {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+          }
         `}</style>
+
+        {/* --- JOYSTICK PROMPT --- */}
+        {!hasUsedJoystick && (
+          <div style={styles.joystickPrompt}>
+            move left and right to see others
+            <div style={styles.promptArrow}>↓</div>
+          </div>
+        )}
 
         {/* PCB Mounting Holes */}
         <div style={{...styles.mountHole, top: 4, left: 4}}><div style={styles.copperRing}></div></div>
@@ -270,6 +291,10 @@ const styles = {
   // Main PCB Board
   bonnetBoard: { width: '340px', height: '150px', backgroundColor: '#383838', borderRadius: '10px', border: '2px solid #222', boxShadow: '0 20px 40px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.1)', position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 10px', zIndex: 10, touchAction: 'none' },
   
+  // Joystick Prompt Indicator
+  joystickPrompt: { position: 'absolute', top: '-55px', left: '-5px', width: '100px', color: '#111', fontFamily: 'monospace', fontSize: '9px', fontWeight: 'bold', textAlign: 'center', pointerEvents: 'none', zIndex: 20, animation: 'bouncePrompt 1.5s infinite', textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1)' },
+  promptArrow: { fontSize: '18px', marginTop: '2px' },
+
   // Mounting Holes
   mountHole: { position: 'absolute', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#222', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.8)' },
   copperRing: { width: '8px', height: '8px', borderRadius: '50%', border: '2px solid #b8860b', backgroundColor: '#1a1a1a' },

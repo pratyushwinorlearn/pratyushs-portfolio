@@ -4,6 +4,12 @@ export default function WireManager() {
   return (
     <svg style={styles.wireLayer} width="2400" height="2400">
       
+      {/* CENTER VERTICAL: LED Heading to ESP32 */}
+      <path d="M 1090 950 C 1090 975, 1082 975, 1090 1000" stroke="#111" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <path d="M 1110 950 C 1110 980, 1118 970, 1110 1000" stroke="#111" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <path d="M 1130 950 C 1130 970, 1122 980, 1130 1000" stroke="#111" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <path d="M 1150 950 C 1150 975, 1158 975, 1150 1000" stroke="#111" strokeWidth="4" fill="none" strokeLinecap="round" />
+
       {/* CENTER: ESP32 to OLED */}
       <path d="M 1060 1080 C 1060 1130, 1030 1150, 1030 1180" stroke="#111" strokeWidth="4" fill="none" strokeLinecap="round" />
       <path d="M 1080 1080 C 1080 1140, 1050 1150, 1055 1180" stroke="#d90429" strokeWidth="4" fill="none" strokeLinecap="round" />
