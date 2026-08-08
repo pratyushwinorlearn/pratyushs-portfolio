@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react' 
+import { useEffect, useRef, useState, Suspense } from 'react' // OPTIMIZATION: Imported Suspense
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from '@react-three/rapier'
-import { useTexture, Environment, useGLTF, Text } from '@react-three/drei' 
+// OPTIMIZATION: Imported AdaptiveDpr and AdaptiveEvents from drei
+import { useTexture, Environment, useGLTF, Text, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei' 
 import Room from './components/Room.jsx'
 import Player from './components/Player.jsx'
 import CameraRig from './components/CameraRig.jsx'
@@ -163,7 +164,7 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
 }
 
 export default function App() {
-  // FIXED: Changed to 1024px to ensure tablets get the 2D Breadboard UI
+  // Maintained your 1024px tablet breakpoint fix
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false)
 
   useEffect(() => {
@@ -209,7 +210,6 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [isUIOpen, isLocked])
 
-  // FIXED: Render MobilePortfolio for anything 1024px or smaller
   if (isMobileOrTablet) {
     return <MobilePortfolio />
   }
@@ -281,33 +281,43 @@ export default function App() {
         </div>
       )}
 
-      <Canvas shadows camera={{ fov: 75, near: 0.1, far: 1000 }}>
+      {/* OPTIMIZATION: Capped Pixel Ratio (dpr) to save GPU on high-res screens */}
+      <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 75, near: 0.1, far: 1000 }}>
         <color attach="background" args={['#000000']} />
         
-        <Environment preset="city" />
+        {/* OPTIMIZATION: Wrapped all heavy 3D assets in Suspense */}
+        <Suspense fallback={null}>
+          <Environment preset="city" />
 
-        <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} />
-        
-        <SkyboxModel />
-        <Moon />
-        
-        <ambientLight intensity={1.5} />
-        <pointLight position={[0, 2.6, 0]} intensity={2} castShadow />
-        <directionalLight position={[100, 50, 50]} intensity={1.5} />
+          <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} />
+          
+          <SkyboxModel />
+          <Moon />
+          
+          {/* OPTIMIZATION: Adaptive helpers lower resolution automatically if the laptop drops frames */}
+          <AdaptiveDpr pixelated />
+          <AdaptiveEvents />
+          
+          <ambientLight intensity={1.5} />
+          {/* OPTIMIZATION: Removed castShadow from pointLight (Calculates shadows 6 times) */}
+          <pointLight position={[0, 2.6, 0]} intensity={2} />
+          {/* OPTIMIZATION: Shifted shadow to directional light, capped shadow-map memory */}
+          <directionalLight position={[100, 50, 50]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
 
-        <Physics gravity={[0, -9.81, 0]}>
-          <RespawnTrigger rigidBodyRef={rigidBodyRef} playerState={playerState} />
-          <CreditsWhiteboard />
-          <Room playerState={playerState} isUIOpen={isUIOpen} closeUI={() => setIsUIOpen(false)} />
-          <InteractiveChair playerState={playerState} rigidBodyRef={rigidBodyRef} setIsUIOpen={setIsUIOpen} />
-          <InteractiveSofa playerState={playerState} rigidBodyRef={rigidBodyRef} />
-          
-          <InteractiveCrowbar playerState={playerState} />
-          
-          <Player playerState={playerState} rigidBodyRef={rigidBodyRef} colliderRef={colliderRef} />
-          <CameraRig playerState={playerState} rigidBodyRef={rigidBodyRef} />
-        </Physics>
-        
+          {/* OPTIMIZATION: Paused the Physics engine loop whenever the OS UI is open */}
+          <Physics gravity={[0, -9.81, 0]} paused={isUIOpen}>
+            <RespawnTrigger rigidBodyRef={rigidBodyRef} playerState={playerState} />
+            <CreditsWhiteboard />
+            <Room playerState={playerState} isUIOpen={isUIOpen} closeUI={() => setIsUIOpen(false)} />
+            <InteractiveChair playerState={playerState} rigidBodyRef={rigidBodyRef} setIsUIOpen={setIsUIOpen} />
+            <InteractiveSofa playerState={playerState} rigidBodyRef={rigidBodyRef} />
+            
+            <InteractiveCrowbar playerState={playerState} />
+            
+            <Player playerState={playerState} rigidBodyRef={rigidBodyRef} colliderRef={colliderRef} />
+            <CameraRig playerState={playerState} rigidBodyRef={rigidBodyRef} />
+          </Physics>
+        </Suspense>
       </Canvas>
     </div>
   )

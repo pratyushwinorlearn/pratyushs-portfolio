@@ -18,11 +18,12 @@ export default function ProjectsTftScreen() {
   const modalVideoRef = useRef(null);
   const modalContainerRef = useRef(null);
 
+  // Added 'github' property to the array for your repository links
   const projects = [
-    { title: "AI INTERVIEWER", stack: "Node.js • Express • Groq AI", type: "WEB APP", video: "/videos/persona.mp4" },
-    { title: "MULTIMODAL AI", stack: "Vision-Language Classify", type: "AI MODEL", video: "/videos/multimodal-ai.mp4" },
-    { title: "JAVA CHESS", stack: "Java • Eclipse IDE", type: "ENGINE", video: "/videos/java-chess.mp4" },
-    { title: "LAST MILE, LOST TIME", stack: "Design Thinking", type: "RESEARCH", video: "/videos/last-mile.mp4" }
+    { title: "AI INTERVIEWER", stack: "Node.js • Express • Groq AI", type: "WEB APP", video: "/videos/persona.mp4", github: "https://github.com/pratyushwinorlearn/persona-ai" },
+    { title: "MULTIMODAL AI", stack: "Vision-Language Classification", type: "AI MODEL", video: "/videos/hatemm.mp4", github: "https://github.com/pratyushwinorlearn/HateMM" },
+    { title: "BLINDNAV", stack: "TypeScript • WiFi RSSI Fingerprinting • KNN", type: "AI MODEL", video: "/videos/blindnav.mp4", github: "https://github.com/pratyushwinorlearn/BlindNav" },
+    { title: "MOVIE DIGGER", stack: "Python • TF-IDF • Cosine-Similarity", type: "AI MODEL", video: "/videos/movie-digger.mp4", github: "https://github.com/pratyushwinorlearn/Movie-Digger" }
   ];
 
   const handleNext = () => setProjectIndex((prev) => (prev + 1) % projects.length);
@@ -112,9 +113,10 @@ export default function ProjectsTftScreen() {
       <div style={styles.bonnetBoard}>
         <style>{`
           .glass-overlay { background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.4) 100%); }
-          .view-btn:hover { color: #fff; text-shadow: 0 0 8px #00ffcc; transform: scale(1.05); }
           
-          /* FIXED: Added translateX(-50%) directly to the keyframes to keep it mathematically centered */
+          /* Updated hover class to apply to both action buttons */
+          .action-btn:hover { color: #fff; border-color: #fff; text-shadow: 0 0 8px #00ffcc; transform: scale(1.05); }
+          
           @keyframes bouncePromptJoystick {
             0%, 100% { transform: translateX(-50%) translateY(0); }
             50% { transform: translateX(-50%) translateY(-5px); }
@@ -183,17 +185,37 @@ export default function ProjectsTftScreen() {
                 </div>
               </div>
 
-              {/* Bottom Right View Button */}
-              <div 
-                className="view-btn"
-                style={styles.viewButton} 
-                onPointerDown={(e) => { e.stopPropagation(); setShowModal(true); setIsPlaying(true); }}
-              >
-                VIEW
-                <svg style={{marginLeft: '4px', paddingBottom: '1px'}} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="7" y1="17" x2="17" y2="7"></line>
-                  <polyline points="7 7 17 7 17 17"></polyline>
-                </svg>
+              {/* Bottom Right Action Buttons (GitHub + View) */}
+              <div style={styles.actionButtonsContainer}>
+                
+                {/* GitHub Code Button */}
+                <a 
+                  href={projects[projectIndex].github} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="action-btn"
+                  style={styles.githubButton}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '3px', paddingBottom: '1px'}}>
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                  </svg>
+                  CODE
+                </a>
+
+                {/* View Video Button */}
+                <div 
+                  className="action-btn"
+                  style={styles.viewButton} 
+                  onPointerDown={(e) => { e.stopPropagation(); setShowModal(true); setIsPlaying(true); }}
+                >
+                  VIEW
+                  <svg style={{marginLeft: '4px', paddingBottom: '1px'}} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </div>
+                
               </div>
 
             </div>
@@ -293,7 +315,6 @@ const styles = {
   // Main PCB Board
   bonnetBoard: { width: '340px', height: '150px', backgroundColor: '#383838', borderRadius: '10px', border: '2px solid #222', boxShadow: '0 20px 40px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.1)', position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 10px', zIndex: 10, touchAction: 'none' },
   
-  // FIXED: Set left to 45px (exact center of the 70px joystick section + 10px padding)
   joystickPrompt: { position: 'absolute', top: '-55px', left: '45px', width: '120px', color: '#111', fontFamily: 'monospace', fontSize: '9px', fontWeight: 'bold', textAlign: 'center', pointerEvents: 'none', zIndex: 20, animation: 'bouncePromptJoystick 1.5s infinite', textShadow: '0 0 4px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1)' },
   promptArrow: { fontSize: '18px', marginTop: '2px' },
 
@@ -328,8 +349,10 @@ const styles = {
   title: { color: '#fff', fontFamily: 'sans-serif', fontSize: '11px', fontWeight: '900', textShadow: '0 2px 4px rgba(0,0,0,0.8)', textAlign: 'center' },
   stack: { color: '#ccc', fontFamily: 'monospace', fontSize: '7px', marginTop: '3px', textAlign: 'center' },
 
-  // VIEW BUTTON
-  viewButton: { position: 'absolute', bottom: '4px', right: '6px', zIndex: 5, color: '#00ffcc', fontFamily: 'monospace', fontSize: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', cursor: 'pointer', background: 'rgba(0,0,0,0.7)', padding: '3px 6px', borderRadius: '2px', border: '1px solid #00ffcc', transition: 'all 0.2s ease' },
+  // ACTION BUTTONS (Replaces just the View Button)
+  actionButtonsContainer: { position: 'absolute', bottom: '4px', right: '6px', zIndex: 5, display: 'flex', gap: '6px' },
+  viewButton: { color: '#00ffcc', fontFamily: 'monospace', fontSize: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', cursor: 'pointer', background: 'rgba(0,0,0,0.7)', padding: '3px 6px', borderRadius: '2px', border: '1px solid #00ffcc', transition: 'all 0.2s ease' },
+  githubButton: { color: '#ccc', textDecoration: 'none', fontFamily: 'monospace', fontSize: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', cursor: 'pointer', background: 'rgba(0,0,0,0.7)', padding: '3px 6px', borderRadius: '2px', border: '1px solid #888', transition: 'all 0.2s ease' },
 
   // RIGHT: Buttons
   rightSection: { width: '70px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '15px' },

@@ -7,9 +7,9 @@ export default function SkillsMatrix() {
   const [hasClicked, setHasClicked] = useState(false);
 
   const skills = [
-    { cat: "LANG", items: "JAVA • PYTHON • C++" },
-    { cat: "WEB", items: "NEXT.JS • NODE.JS • EXPRESS" },
-    { cat: "TOOLS", items: "FRAMER MOTION • ECLIPSE" }
+    { cat: "LANGUAGE", items: "Python • React • SQL" },
+    { cat: "FRAMEWORKS", items: "PyTorch • TensorFlow • Scikit-learn • Hugging Face" },
+    { cat: "CLOUD", items: "Amazon Web Services" }
   ];
 
   // Pin labels matching the staggered layout of the reference image

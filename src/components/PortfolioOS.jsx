@@ -126,6 +126,30 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
         </div>
       )
     },
+    { 
+      id: 'multimodal_ai', name: 'Multimodal_AI.exe', icon: <Terminal size={32} color="#00ffcc" />, 
+      content: (
+        <div style={{ width: '100%', height: '100%', backgroundColor: '#000' }}>
+          <video src="/videos/hatemm.mp4" autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      )
+    },
+    { 
+      id: 'BlindNav', name: 'BlindNav.exe', icon: <Terminal size={32} color="#00ffcc" />, 
+      content: (
+        <div style={{ width: '100%', height: '100%', backgroundColor: '#000' }}>
+          <video src="/videos/blindnav.mp4" autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      )
+    },
+    { 
+      id: 'movie_digger', name: 'Movie_Digger.exe', icon: <Terminal size={32} color="#00ffcc" />, 
+      content: (
+        <div style={{ width: '100%', height: '100%', backgroundColor: '#000' }}>
+          <video src="/videos/movie-digger.mp4" autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      )
+    },
     { id: 'aws_badges', name: 'AWS_Cloud.exe', icon: <Award size={32} color="#ff9900" />, content: <AwsApp /> },
     { id: 'github', name: 'GitHub', icon: <Code size={32} color="#fff" />, content: <GithubClone /> },
     { id: 'linkedin', name: 'LinkedIn', icon: <Briefcase size={32} color="#0077b5" />, content: <LinkedInClone /> },
@@ -202,6 +226,16 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
         .os-container *, .os-container a, .os-container button, .os-container input, .os-container [role="button"] {
           cursor: none !important;
         }
+
+        /* 🚨 NEW FIX: Bypasses react-rnd bugs to guarantee exact 100% full-screen bounds */
+        .maximized-window {
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          transform: translate(0px, 0px) !important;
+          border-radius: 0 !important;
+        }
       `}</style>
       
       <div 
@@ -216,7 +250,6 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
           </div>
         ) : (
           <>
-            {/* 🚨 FIX 2: Bulletproof Dynamic CSS styling to prevent React warnings */}
             <div style={{
               ...styles.desktop,
               ...(wallpaper.startsWith('#') 
@@ -236,6 +269,7 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
               {windows.map((win) => (
                 <Rnd
                   key={win.id}
+                  className={win.isMaximized ? "maximized-window" : ""} /* Applies the override */
                   size={{ 
                     width: win.isMaximized ? '100%' : (win.width || 900), 
                     height: win.isMaximized ? '100%' : (win.height || 600) 
