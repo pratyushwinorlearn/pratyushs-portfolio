@@ -66,7 +66,8 @@ function CreditsWhiteboard() {
           Skybox of Constellations by tiunov.se{"\n"}
           Moon by Akshat{"\n"}
           Whiteboard by Reflex_Entertainment{"\n"}
-          Old Chair by KZNYKN{"\n\n"}
+          Old Chair by KZNYKN{"\n"}
+          Character and its animations from Mixamo{"\n\n"}
           Designed & Developed by Shekhar Pratyush{"\n"}
       </Text>
     </RigidBody>
