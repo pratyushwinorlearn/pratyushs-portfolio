@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Rnd } from 'react-rnd'
 import { motion } from 'framer-motion'
-import { Folder, Terminal, Code, Briefcase, Mail, Search, FileText, Image as ImageIcon, X, Minus, Square, Award, Settings } from 'lucide-react'
+import { Folder, Terminal, Code, Briefcase, Mail, Search, FileText, Image as ImageIcon, X, Minus, Square, Award, Settings, Map } from 'lucide-react'
 import AwsApp from './AwsApp'
 import GithubClone from './GithubClone'
 import LinkedInClone from './LinkedInClone'
 import FileExplorer from './FileExplorer'
+import RibbonJourneyApp from './RibbonJourneyApp'
 
 // --- HOVER.DEV LOADER COMPONENTS ---
 const loaderVariants = {
@@ -98,13 +99,11 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
   const [isBooting, setIsBooting] = useState(false)
   const [wallpaper, setWallpaper] = useState('url("/desktopwallpaper.jpg")')
 
-  // 1. Clock Timer
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  // 🚨 FIX 1: Boot Sequence Logic strictly tied to terminal opening
   useEffect(() => {
     if (isUIOpen) {
       setIsBooting(true)
@@ -151,6 +150,7 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
       )
     },
     { id: 'aws_badges', name: 'AWS_Cloud.exe', icon: <Award size={32} color="#ff9900" />, content: <AwsApp /> },
+    { id: 'ribbon_journey', name: 'My_Journey.exe', icon: <Map size={32} color="#8338ec" />, content: <RibbonJourneyApp /> },
     { id: 'github', name: 'GitHub', icon: <Code size={32} color="#fff" />, content: <GithubClone /> },
     { id: 'linkedin', name: 'LinkedIn', icon: <Briefcase size={32} color="#0077b5" />, content: <LinkedInClone /> },
     { id: 'file_explorer', name: 'Explorer.exe', icon: <Folder size={32} color="#ffaa00" />, content: <FileExplorer /> },
@@ -227,7 +227,6 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
           cursor: none !important;
         }
 
-        /* 🚨 NEW FIX: Bypasses react-rnd bugs to guarantee exact 100% full-screen bounds */
         .maximized-window {
           top: 0 !important;
           left: 0 !important;
@@ -269,7 +268,7 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
               {windows.map((win) => (
                 <Rnd
                   key={win.id}
-                  className={win.isMaximized ? "maximized-window" : ""} /* Applies the override */
+                  className={win.isMaximized ? "maximized-window" : ""}
                   size={{ 
                     width: win.isMaximized ? '100%' : (win.width || 900), 
                     height: win.isMaximized ? '100%' : (win.height || 600) 
@@ -303,9 +302,22 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
                       <button style={{...styles.controlBtn, ...styles.closeBtn}} onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}><X size={14} /></button>
                     </div>
                   </div>
-                  <div style={styles.windowContent}>
+
+                  {/* 🚨 THE FIX: Force absolute math to bypass flexbox completely */}
+                  <div style={{
+                    ...styles.windowContent,
+                    ...(win.id === 'ribbon_journey' ? { 
+                      position: 'relative', 
+                      width: '100%', 
+                      height: 'calc(100% - 33px)', // 33px is your title bar height
+                      flex: 'none', 
+                      overflow: 'hidden', 
+                      padding: 0 
+                    } : {})
+                  }}>
                     {win.content}
                   </div>
+
                 </Rnd>
               ))}
             </div>
