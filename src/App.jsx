@@ -220,7 +220,7 @@ export default function App() {
       
       {isUIOpen && !isLocked && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
-          <UserCursor name="Pratyush" color="#00ffcc" size={28} />
+          <UserCursor name="Pratyush" color="#d24014" size={28} />
         </div>
       )}
 

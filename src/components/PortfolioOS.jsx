@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Rnd } from 'react-rnd'
-import { motion } from 'framer-motion'
-import { Folder, Terminal, Code, Briefcase, Mail, Search, FileText, Image as ImageIcon, X, Minus, Square, Award, Settings, Map } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Folder, Terminal, Code, Briefcase, Mail, Search, FileText, Image as ImageIcon, X, Minus, Square, Award, Settings, Map, Bot, Send, MessageSquare } from 'lucide-react'
 import AwsApp from './AwsApp'
 import GithubClone from './GithubClone'
 import LinkedInClone from './LinkedInClone'
@@ -30,11 +30,187 @@ const BarLoader = () => {
         <motion.div 
           key={i} 
           variants={loaderVariants} 
-          style={{ height: '48px', width: '8px', backgroundColor: '#00ffcc', boxShadow: '0 0 10px #00ffcc' }} 
+          style={{ height: '48px', width: '8px', backgroundColor: '#00a2ff', boxShadow: '0 0 10px #2983a3' }} 
         />
       ))}
     </motion.div>
   )
+}
+
+// --- FLOATING RAG ASSISTANT COMPONENT ---
+const FloatingRAGAssistant = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { role: 'ai', content: 'System online. I am the local AI embedded in PortfolioOS. Ask me about Pratyush\'s ML models, architecture, or general tech questions!' }
+  ]);
+  const [input, setInput] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  
+  const chatAreaRef = useRef(null);
+
+  useEffect(() => {
+    if (chatAreaRef.current) {
+      chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const killEvent = (e) => {
+    e.stopPropagation();
+    if (e.nativeEvent) {
+      e.nativeEvent.stopImmediatePropagation();
+    }
+  };
+
+  const handleSend = async (textToSend) => {
+  if (!textToSend.trim() || isStreaming) return;
+
+  setInput('');
+  setMessages(prev => [...prev, { role: 'user', content: textToSend }, { role: 'ai', content: '' }]);
+  setIsStreaming(true);
+
+  try {
+    const response = await fetch("https://portfolio-rag-backend-meut.onrender.com/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
+      body: JSON.stringify({ query: textToSend }),
+    });
+
+    if (!response.ok) throw new Error("Network error");
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop(); 
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const token = line.slice(6);
+          if (token === "[DONE]") continue;
+
+          setMessages(prev => {
+            const newMessages = [...prev];
+            newMessages[newMessages.length - 1].content += token;
+            return newMessages;
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error("RAG Error:", error);
+    setMessages(prev => {
+      const newMessages = [...prev];
+      newMessages[newMessages.length - 1].content = "Error connecting to AI engine.";
+      return newMessages;
+    });
+  } finally {
+    setIsStreaming(false);
+  }
+};
+
+  return (
+    <div 
+      style={styles.ragContainer}
+      onClick={killEvent}
+      onPointerDown={killEvent}
+    >
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            style={styles.ragChatBox}
+          >
+            <div style={styles.ragHeader}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Bot size={18} color="#ffffff" />
+                <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#ffffff' }}>PortfolioOS AI</span>
+              </div>
+              <X size={16} color="#888" onClick={() => setIsOpen(false)} style={{ cursor: 'pointer' }} />
+            </div>
+
+            {/* 🚨 FIX: overflowY: 'scroll' prevents the UI from vibrating during rapid streaming */}
+            <div ref={chatAreaRef} style={styles.ragChatArea}>
+              {messages.map((msg, idx) => (
+                <div key={idx} style={{
+                  display: 'flex',
+                  justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                  marginBottom: '15px'
+                }}>
+                  <div style={{
+                    maxWidth: '85%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    lineHeight: '1.5',
+                    backgroundColor: msg.role === 'user' ? '#00c8ff' : 'rgba(255,255,255,0.05)',
+                    color: msg.role === 'user' ? '#000' : '#fff',
+                    border: msg.role === 'user' ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                    fontFamily: msg.role === 'user' ? 'inherit' : 'monospace',
+                    whiteSpace: 'pre-wrap' 
+                  }}>
+                    {msg.content}
+                    {msg.role === 'ai' && isStreaming && idx === messages.length - 1 && (
+                      <motion.span
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ repeat: Infinity, duration: 0.8 }}
+                        style={{ display: 'inline-block', width: '6px', height: '12px', background: '#45cbf8', marginLeft: '4px', verticalAlign: 'middle' }}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={styles.ragInputArea}>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask anything..."
+                disabled={isStreaming}
+                style={styles.ragInput}
+                onKeyDown={(e) => {
+                  killEvent(e);
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSend(input);
+                  }
+                }}
+              />
+              <button 
+                disabled={isStreaming || !input.trim()} 
+                style={{...styles.ragSubmitBtn, opacity: (isStreaming || !input.trim()) ? 0.5 : 1}}
+                onClick={(e) => {
+                  killEvent(e);
+                  handleSend(input);
+                }}
+              >
+                <Send size={16} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setIsOpen(!isOpen)}
+        style={styles.ragToggleBtn}
+      >
+        <MessageSquare size={20} color="#000" />
+        <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Test Local RAG AI</span>
+      </motion.div>
+    </div>
+  );
 }
 
 // --- SETTINGS APP COMPONENT ---
@@ -215,11 +391,19 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
     updateWindow(id, { isMinimized: true })
   }
 
+  // 🚨 FIX: Massive Global Event Shield to protect the 3D scene from hearing OS keystrokes
+  const stopGlobalEvents = (e) => {
+    e.stopPropagation();
+    if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
+  };
+
   return (
     <div 
       style={styles.backdrop}
-      onPointerDown={(e) => e.stopPropagation()} 
+      onPointerDown={stopGlobalEvents} 
       onClick={closeUI}
+      onKeyDown={stopGlobalEvents}
+      onKeyUp={stopGlobalEvents}
     >
       <style>{`
         body, html { cursor: none !important; }
@@ -240,7 +424,9 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
       <div 
         className="os-container"
         style={styles.osWrapper}
-        onClick={(e) => e.stopPropagation()} 
+        onClick={stopGlobalEvents}
+        onKeyDown={stopGlobalEvents}
+        onKeyUp={stopGlobalEvents}
       >
         {isBooting ? (
           <div style={styles.bootScreen}>
@@ -265,6 +451,8 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
                 ))}
               </div>
 
+              <FloatingRAGAssistant />
+
               {windows.map((win) => (
                 <Rnd
                   key={win.id}
@@ -284,8 +472,10 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
                   minHeight={400}
                   bounds="parent"
                   dragHandleClassName="window-title-bar"
+                  // 🚨 FIX: win.isMaximized forces zIndex to 999 so it correctly overlays the RAG bot (zIndex: 50)
                   style={{ 
-                    zIndex: win.zIndex, display: win.isMinimized ? 'none' : 'flex', flexDirection: 'column', 
+                    zIndex: win.isMaximized ? 999 : win.zIndex, 
+                    display: win.isMinimized ? 'none' : 'flex', flexDirection: 'column', 
                     backgroundColor: '#1a1a1a', border: '1px solid #444', borderRadius: win.isMaximized ? '0px' : '8px', 
                     overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.7)' 
                   }}
@@ -303,13 +493,12 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
                     </div>
                   </div>
 
-                  {/* 🚨 THE FIX: Force absolute math to bypass flexbox completely */}
                   <div style={{
                     ...styles.windowContent,
                     ...(win.id === 'ribbon_journey' ? { 
                       position: 'relative', 
                       width: '100%', 
-                      height: 'calc(100% - 33px)', // 33px is your title bar height
+                      height: 'calc(100% - 33px)',
                       flex: 'none', 
                       overflow: 'hidden', 
                       padding: 0 
@@ -430,7 +619,7 @@ const styles = {
   },
   iconGrid: {
     display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '20px', height: '100%', alignContent: 'flex-start',
-    padding: '20px'
+    padding: '20px', zIndex: 1
   },
   appIcon: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', width: '90px', padding: '10px', borderRadius: '5px',
@@ -448,7 +637,7 @@ const styles = {
   taskbar: {
     position: 'relative', height: '50px', backgroundColor: 'rgba(15, 15, 15, 0.95)', borderTop: '1px solid #333', 
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-    padding: '0 20px', gap: '20px', backdropFilter: 'blur(10px)', zIndex: 100
+    padding: '0 20px', gap: '20px', backdropFilter: 'blur(10px)', zIndex: 1000
   },
   taskbarLeft: { display: 'flex', alignItems: 'center', gap: '15px', flex: 1, overflow: 'hidden' },
   taskbarApps: { display: 'flex', alignItems: 'center', gap: '5px', overflowX: 'auto', flex: 1 },
@@ -480,5 +669,55 @@ const styles = {
     display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 15px',
     cursor: 'none', fontSize: '0.9rem', borderBottom: '1px solid #2a2a2a', transition: 'background 0.2s'
   },
-  systemTray: { display: 'flex', alignItems: 'center', fontSize: '0.85rem', cursor: 'none', flexShrink: 0 }
+  systemTray: { display: 'flex', alignItems: 'center', fontSize: '0.85rem', cursor: 'none', flexShrink: 0 },
+  
+  // 🚨 FIX: RAG zIndex moved from 500 to 50 so it sits natively on the desktop, below normal/maximized windows
+  ragContainer: {
+    position: 'absolute', right: '30px', bottom: '30px', zIndex: 50,
+    display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '15px',
+  },
+  ragToggleBtn: {
+    display: 'flex', alignItems: 'center', gap: '10px',
+    padding: '12px 24px', borderRadius: '30px',
+    backgroundColor: '#00ffcc', color: '#000',
+    boxShadow: '0 4px 20px rgba(0, 255, 204, 0.4)',
+    cursor: 'none', zIndex: 51
+  },
+  ragChatBox: {
+    width: '380px', height: '500px',
+    backgroundColor: 'rgba(15, 15, 15, 0.8)',
+    backdropFilter: 'blur(15px)',
+    border: '1px solid rgba(0, 255, 204, 0.3)',
+    borderRadius: '12px',
+    display: 'flex', flexDirection: 'column',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.8)',
+    overflow: 'hidden'
+  },
+  ragHeader: {
+    padding: '15px 20px', backgroundColor: 'rgba(0, 255, 204, 0.1)',
+    borderBottom: '1px solid rgba(0, 255, 204, 0.2)',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+  },
+  // 🚨 FIX: overflowY 'scroll' permanently forces the scroll track, preventing Flexbox vibration
+  ragChatArea: {
+    flexGrow: 1, padding: '20px', overflowY: 'scroll',
+    display: 'flex', flexDirection: 'column', gap: '10px',
+    cursor: 'none'
+  },
+  ragInputArea: {
+    padding: '15px', borderTop: '1px solid rgba(255,255,255,0.1)',
+    display: 'flex', gap: '10px', backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  ragInput: {
+    flexGrow: 1, backgroundColor: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px',
+    padding: '10px 15px', color: '#fff', fontSize: '0.85rem',
+    outline: 'none', cursor: 'none'
+  },
+  ragSubmitBtn: {
+    backgroundColor: '#3e81f5', color: '#000', border: 'none',
+    width: '40px', height: '40px', borderRadius: '50%',
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
+    cursor: 'none', transition: 'opacity 0.2s'
+  }
 }
