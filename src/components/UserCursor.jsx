@@ -444,7 +444,7 @@ const COMPONENT_DEFAULTS = {
   offsetY: 0,
   showLabel: true,
   name: "Robert",
-  textColor: "#000000",
+  textColor: "#fdfdfd",
   labelTiltStrength: 25,
   labelOffsetUseDefault: true,
   labelOffsetX: 25,

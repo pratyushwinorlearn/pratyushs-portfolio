@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, Suspense } from 'react' // OPTIMIZATION: Imported Suspense
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from '@react-three/rapier'
-// OPTIMIZATION: Imported AdaptiveDpr and AdaptiveEvents from drei
+// OPTIMIZATION: Imported AdaptiveD
+//  and AdaptiveEvents from drei
 import { useTexture, Environment, useGLTF, Text, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei' 
 import Room from './components/Room.jsx'
 import Player from './components/Player.jsx'
@@ -220,7 +221,7 @@ export default function App() {
       
       {isUIOpen && !isLocked && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
-          <UserCursor name="Pratyush" color="#d24014" size={28} />
+          <UserCursor name="Pratyush" color="#890808" size={28} />
         </div>
       )}
 
