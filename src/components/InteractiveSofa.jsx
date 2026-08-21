@@ -32,12 +32,15 @@ export default function InteractiveSofa({ playerState, rigidBodyRef }) {
           const nextState = !prev
           playerState.isSitting = nextState 
           
-          if (!nextState && rigidBodyRef.current) {
-            rigidBodyRef.current.setNextKinematicTranslation({
-              x: sofaX,
-              y: 1.5, 
-              z: sofaZ + 1.5 
-            })
+          if (!nextState) {
+            // 🚨 RACE FIX: same reasoning as InteractiveChair — this used
+            // to call rigidBodyRef.current.setNextKinematicTranslation
+            // directly from this raw keydown handler, racing against
+            // Player.jsx's own useFrame (which writes to the same rigid
+            // body every frame using virtualPos that hadn't yet been
+            // resynced to this new target). Hand off the intent instead;
+            // Player.jsx applies it exactly once, in its own frame loop.
+            playerState.pendingTeleport = { x: sofaX, y: 1.5, z: sofaZ + 1.5 }
           }
           
           return nextState
