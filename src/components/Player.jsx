@@ -5,7 +5,6 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import CharacterMesh from './CharacterMesh'
 
-// 🚨 Tuned down for the 165Hz physics fix
 const SPEED = 1.6 
 const CROUCH_SPEED = 0.8 
 const JUMP_FORCE = 2.5 
@@ -34,8 +33,12 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
   const attackTimeRef = useRef(0)
   
   const spawnGraceTimer = useRef(0)
+  
+  // 🚨 NEW: Ejection lock timers to fix the Vercel standing bug
+  const wasSitting = useRef(false)
+  const standUpGraceTimer = useRef(0)
 
-  // 🚨 NEW: Virtual accumulators for the physics staleness fix
+  // 🚨 Virtual accumulators for the physics staleness fix
   const virtualPos = useRef(new THREE.Vector3(0.6, 2, -3.5))
   const lastPhysicsPos = useRef(new THREE.Vector3(0.6, 2, -3.5))
 
@@ -93,9 +96,17 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     if (!rb || !collider || !controller) return
 
     if (playerState.isSitting) {
+      wasSitting.current = true;
+      standUpGraceTimer.current = 0.2; // 200ms teleport window
+
       verticalVelocity.current = 0 
       actionRef.current = playerState.sitType === 'sofa' ? 'mixamo.com.001' : 'sitting' 
       const pos = rb.translation()
+      
+      // Keep virtual tracker perfectly synced while sitting
+      virtualPos.current.set(pos.x, pos.y, pos.z)
+      lastPhysicsPos.current.set(pos.x, pos.y, pos.z)
+      
       playerState.position.set(pos.x, pos.y, pos.z)
       if (meshGroupRef.current) {
         meshGroupRef.current.rotation.y = Math.PI / 2 
@@ -104,6 +115,22 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
       if (weaponContainerRef.current) weaponContainerRef.current.visible = false
       return 
     }
+
+    // 🚨 FIX: Allow the physics engine to resolve the stand-up teleport before grabbing control!
+    if (standUpGraceTimer.current > 0) {
+      standUpGraceTimer.current -= delta;
+      
+      // Sync virtual position to wherever the furniture teleported us
+      const pos = rb.translation();
+      virtualPos.current.set(pos.x, pos.y, pos.z);
+      lastPhysicsPos.current.set(pos.x, pos.y, pos.z);
+      playerState.position.set(pos.x, pos.y, pos.z);
+
+      // Wait for the teleport to finish before processing movement
+      return;
+    }
+
+    wasSitting.current = false;
 
     const forward = new THREE.Vector3()
     camera.getWorldDirection(forward)
@@ -138,7 +165,7 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     
     move.y = verticalVelocity.current * delta
 
-    // 🚨 FIX: 165Hz physics staleness resolution
+    // 🚨 165Hz physics staleness resolution
     controller.computeColliderMovement(collider, move)
     const corrected = controller.computedMovement()
 
@@ -158,8 +185,7 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     rb.setNextKinematicTranslation(virtualPos.current)
     playerState.position.set(virtualPos.current.x, virtualPos.current.y, virtualPos.current.z)
-    // 🚨 END FIX
-
+    
     const attackDuration = 0.8; 
     if (isAttackingRef.current) {
       attackTimeRef.current += delta;
