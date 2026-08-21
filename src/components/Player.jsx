@@ -5,9 +5,10 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import CharacterMesh from './CharacterMesh'
 
-const SPEED = 4.2 
-const CROUCH_SPEED = 2.0 
-const JUMP_FORCE = 6.0 
+// 🚨 Tuned down for the 165Hz physics fix
+const SPEED = 1.6 
+const CROUCH_SPEED = 0.8 
+const JUMP_FORCE = 2.5 
 const GRAVITY = -15.0 
 const CAPSULE_HALF_HEIGHT = 0.55 
 const CAPSULE_RADIUS = 0.35
@@ -32,8 +33,11 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
   const isAttackingRef = useRef(false)
   const attackTimeRef = useRef(0)
   
-  // 🚨 NEW: Timer to prevent falling before the map loads
   const spawnGraceTimer = useRef(0)
+
+  // 🚨 NEW: Virtual accumulators for the physics staleness fix
+  const virtualPos = useRef(new THREE.Vector3(0.6, 2, -3.5))
+  const lastPhysicsPos = useRef(new THREE.Vector3(0.6, 2, -3.5))
 
   useEffect(() => {
     const controller = world.createCharacterController(0.02)
@@ -117,7 +121,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     const currentSpeed = keys.current.shift ? CROUCH_SPEED : SPEED
     if (isMoving) move.normalize().multiplyScalar(currentSpeed * delta)
 
-    // 🚨 UPDATED: Jump & Gravity Logic with Grace Period and Terminal Velocity Fix
     const grounded = controller.computedGrounded && controller.computedGrounded()
     
     spawnGraceTimer.current += delta
@@ -127,24 +130,35 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
       if (keys.current.space) verticalVelocity.current = JUMP_FORCE
       else verticalVelocity.current = Math.max(verticalVelocity.current, -0.1)
     } else if (!isSpawnGrace) {
-      // Only apply gravity if the grace period is over
       verticalVelocity.current += GRAVITY * delta
-      // Terminal velocity clamp to prevent tunneling through the floor
       verticalVelocity.current = Math.max(verticalVelocity.current, -20.0)
     } else {
-      // Float safely while the room loads
       verticalVelocity.current = 0 
     }
     
     move.y = verticalVelocity.current * delta
 
+    // 🚨 FIX: 165Hz physics staleness resolution
     controller.computeColliderMovement(collider, move)
     const corrected = controller.computedMovement()
 
     const pos = rb.translation()
-    const next = { x: pos.x + corrected.x, y: pos.y + corrected.y, z: pos.z + corrected.z }
-    rb.setNextKinematicTranslation(next)
-    playerState.position.set(next.x, next.y, next.z)
+    const isPhysicsStep = pos.x !== lastPhysicsPos.current.x || pos.y !== lastPhysicsPos.current.y || pos.z !== lastPhysicsPos.current.z
+    
+    if (isPhysicsStep) {
+      // Sync our virtual tracker to the true physics position
+      virtualPos.current.set(pos.x, pos.y, pos.z)
+      lastPhysicsPos.current.set(pos.x, pos.y, pos.z)
+    }
+
+    // Accumulate the movement safely
+    virtualPos.current.x += corrected.x
+    virtualPos.current.y += corrected.y
+    virtualPos.current.z += corrected.z
+
+    rb.setNextKinematicTranslation(virtualPos.current)
+    playerState.position.set(virtualPos.current.x, virtualPos.current.y, virtualPos.current.z)
+    // 🚨 END FIX
 
     const attackDuration = 0.8; 
     if (isAttackingRef.current) {

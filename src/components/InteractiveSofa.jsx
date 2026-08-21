@@ -6,6 +6,7 @@ export default function InteractiveSofa({ playerState, rigidBodyRef }) {
   const [isNear, setIsNear] = useState(false)
   const [isSitting, setIsSitting] = useState(false)
   const isNearRef = useRef(false) 
+  const lastPressTime = useRef(0) // 🚨 NEW: Interaction lock timer
 
   const sofaX = -0.74   
   const sofaZ = -5.6
@@ -13,24 +14,29 @@ export default function InteractiveSofa({ playerState, rigidBodyRef }) {
 
   const playerSitOffsetX = -0.2
   const playerSitOffsetZ = 0.1
-  // FIXED: Raised from 0.6 so the capsule bottom doesn't dip under the floor
   const playerSitHeight = 1.4
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // 🚨 FIX 1: Ignore operating system key repeats
+      if (e.repeat) return;
+
       if (e.code === 'KeyE' && isNearRef.current) {
+        
+        // 🚨 FIX 2: Strict 500ms debounce lock
+        const now = Date.now();
+        if (now - lastPressTime.current < 500) return;
+        lastPressTime.current = now;
+
         setIsSitting((prev) => {
           const nextState = !prev
           playerState.isSitting = nextState 
           
-          // FIXED: The Ejection Logic!
-          // When standing up, teleport the player slightly forward and up
-          // so they don't get trapped inside the Room's trimesh collider.
           if (!nextState && rigidBodyRef.current) {
             rigidBodyRef.current.setNextKinematicTranslation({
               x: sofaX,
-              y: 1.5, // Drop slightly from the air so they land cleanly
-              z: sofaZ + 1.5 // Teleport them +Z (forward) away from the sofa
+              y: 1.5, 
+              z: sofaZ + 1.5 
             })
           }
           
@@ -40,7 +46,7 @@ export default function InteractiveSofa({ playerState, rigidBodyRef }) {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [playerState, rigidBodyRef]) // Added rigidBodyRef as dependency
+  }, [playerState, rigidBodyRef])
 
   useFrame(() => {
     const distX = playerState.position.x - sofaX

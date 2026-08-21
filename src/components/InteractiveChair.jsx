@@ -7,10 +7,10 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
   const [isNear, setIsNear] = useState(false)
   const [isSitting, setIsSitting] = useState(false)
   
-  // Keeps the chair non-solid temporarily when you stand up
   const [justStoodUp, setJustStoodUp] = useState(false)
   
   const isNearRef = useRef(false) 
+  const lastPressTime = useRef(0) // 🚨 NEW: Interaction lock timer
 
   const chairX = 2.7   
   const chairZ = -4.1
@@ -26,8 +26,17 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
         return;
       }
+      
+      // 🚨 FIX 1: Ignore operating system key repeats
+      if (e.repeat) return;
 
       if (e.code === 'KeyE' && isNearRef.current) {
+        
+        // 🚨 FIX 2: Strict 500ms debounce lock
+        const now = Date.now();
+        if (now - lastPressTime.current < 500) return;
+        lastPressTime.current = now;
+
         setIsSitting((prev) => {
           const nextState = !prev
           playerState.isSitting = nextState
@@ -35,12 +44,10 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
           if (!nextState) {
             // 🧍 STANDING UP:
             if (setIsUIOpen) setIsUIOpen(false)
-            
-            // Activate the "ghost" phase so you don't get stuck!
             setJustStoodUp(true)
           } else {
             // 🪑 SITTING DOWN:
-            setJustStoodUp(false) // Reset just in case
+            setJustStoodUp(false) 
             
             if (rigidBodyRef.current) {
               playerState.sitType = 'desk'
@@ -70,7 +77,6 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
       isNearRef.current = closeEnough
       setIsNear(closeEnough)
       
-      // Once you walk away from the chair, it becomes solid again!
       if (!closeEnough) {
         setJustStoodUp(false)
       }
