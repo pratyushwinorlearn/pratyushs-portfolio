@@ -95,29 +95,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     const controller = controllerRef.current
     if (!rb || !collider || !controller) return
 
-    // 🚨 RACE FIX: this is now the ONLY place in the whole app that ever
-    // calls rb.setNextKinematicTranslation for a furniture-ejection
-    // teleport. InteractiveChair/InteractiveSofa no longer call the
-    // rigid body directly from their keydown handlers — they just set
-    // playerState.pendingTeleport with the desired target, and this
-    // frame loop consumes it exactly once, at the same point (and via
-    // the same virtualPos/lastPhysicsPos sync machinery) as every other
-    // kinematic write in this file. That removes the two-writers race
-    // structurally instead of trying to out-time it with more debounces.
-    if (playerState.pendingTeleport) {
-      const { x, y, z } = playerState.pendingTeleport
-      rb.setNextKinematicTranslation({ x, y, z })
-      virtualPos.current.set(x, y, z)
-      lastPhysicsPos.current.set(x, y, z)
-      playerState.position.set(x, y, z)
-      playerState.pendingTeleport = null
-      // Reuse the existing grace mechanism so Rapier gets a beat to
-      // actually apply this kinematic move before normal WASD movement
-      // resumes and starts reading rb.translation() again.
-      standUpGraceTimer.current = 0.2
-      return
-    }
-
     if (playerState.isSitting) {
       wasSitting.current = true;
       standUpGraceTimer.current = 0.2; // 200ms teleport window

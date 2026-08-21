@@ -45,15 +45,6 @@ export default function InteractiveChair({ playerState, rigidBodyRef, setIsUIOpe
             // 🧍 STANDING UP:
             if (setIsUIOpen) setIsUIOpen(false)
             setJustStoodUp(true)
-            // 🚨 RACE FIX: don't call rigidBodyRef directly from this raw
-            // DOM event handler — that competes with Player.jsx's own
-            // useFrame for who last calls setNextKinematicTranslation
-            // before Rapier's next physics step consumes it. Hand off
-            // the eject *intent* via playerState instead; Player.jsx
-            // (the only file that ever touches the rigid body's
-            // kinematic translation) applies it once, at the correct
-            // point in its own frame loop.
-            playerState.pendingTeleport = { x: chairX - 1.0, y: 1.2, z: chairZ }
           } else {
             // 🪑 SITTING DOWN:
             setJustStoodUp(false) 
