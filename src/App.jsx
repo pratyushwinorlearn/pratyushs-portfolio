@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState, Suspense } from 'react' // OPTIMIZATION: Imported Suspense
+import { useEffect, useRef, useState, Suspense } from 'react' 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from '@react-three/rapier'
-// OPTIMIZATION: Imported AdaptiveD
-//  and AdaptiveEvents from drei
-import { useTexture, Environment, useGLTF, Text, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei' 
+import { useTexture, Environment, useGLTF, Text, AdaptiveDpr, AdaptiveEvents, useProgress } from '@react-three/drei' 
 import Room from './components/Room.jsx'
 import Player from './components/Player.jsx'
 import CameraRig from './components/CameraRig.jsx'
@@ -13,6 +11,97 @@ import InteractiveSofa from './components/InteractiveSofa'
 import UserCursor from './components/UserCursor.jsx' 
 import InteractiveCrowbar from './components/InteractiveCrowbar.jsx'
 import MobilePortfolio from './components/mobile-portfolio/MobilePortfolio.jsx'
+
+// --- 🚨 UPDATED: RETRO TERMINAL BOOT LOADER (HINDI + SARPANCH FONT) ---
+function TerminalBootLoader({ setHasLoaded }) {
+  const { progress } = useProgress()
+  const [bootLog, setBootLog] = useState([])
+  
+  // Retro ASCII Progress Bar Math
+  const totalBlocks = 40
+  const filledBlocks = Math.floor((progress / 100) * totalBlocks)
+  const barString = '█'.repeat(filledBlocks) + '░'.repeat(totalBlocks - filledBlocks)
+
+  useEffect(() => {
+    // Translated, sentence-cased Hindi system diagnostic logs
+    const logs = [
+      "बायोस दिनांक 08/22/26 संस्करण 2.0.4",
+      "सीपीयू: प्रत्युष न्यूरल कर्नेल... ठीक है",
+      "मेमोरी टेस्ट: 64000K बेस... ठीक है",
+      "वर्चुअल फाइल सिस्टम माउंट हो रहा है...",
+      "3D एसेट्स लोड हो रहे हैं...",
+      "रैपियर फिजिक्स इंजन आरंभ हो रहा है...",
+      "वेबजीएल शेडर्स संकलित हो रहे हैं...",
+      "टेक्सचर बफ़र्स आवंटित हो रहे हैं...",
+      progress >= 100 ? "सिस्टम तैयार है. शुरू करने के लिए कोई भी कुंजी दबाएं." : "संसाधन प्राप्त किए जा रहे हैं..."
+    ]
+    
+    const currentStep = Math.floor((progress / 100) * (logs.length - 1))
+    setBootLog(logs.slice(0, currentStep + 1))
+
+    if (progress >= 100) {
+      // Hold at 100% for 1.2 seconds so the user can appreciate the boot screen
+      const t = setTimeout(() => setHasLoaded(true), 1200)
+      return () => clearTimeout(t)
+    }
+  }, [progress, setHasLoaded])
+
+  return (
+    <div style={{
+      position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',
+      backgroundColor: '#050403', zIndex: 9999, display: 'flex', flexDirection: 'column',
+      justifyContent: 'center', alignItems: 'center',
+      color: '#ffb703', 
+      fontFamily: '"Sarpanch", "Courier New", Courier, monospace',
+      cursor: 'none', overflow: 'hidden'
+    }}>
+      {/* CRT Scanline Overlay */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+        background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%)',
+        backgroundSize: '100% 4px', pointerEvents: 'none', zIndex: 10
+      }} />
+      
+      {/* Terminal Glow Effect */}
+      <div style={{ width: '80%', maxWidth: '900px', zIndex: 20, textShadow: '0px 0px 6px rgba(255,183,3,0.6)' }}>
+        
+        {/* 🚨 FIX: Changed Title */}
+        <h1 style={{ fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '2px', lineHeight: '1.2' }}>
+          Pratyush's Portfolio
+        </h1>
+        
+        {/* 🚨 Smaller Font & adjusted margins */}
+        <p style={{ fontSize: '1rem', borderBottom: '2px solid #ffb703', paddingBottom: '15px', margin: '0 0 30px 0', letterSpacing: '1px' }}>
+          (c) कॉपीराइट शेखर प्रत्युष
+        </p>
+        
+        {/* 🚨 FIX: Removed fixed height & flex-end. Using minHeight and flex-start stops it from overflowing upwards! */}
+        <div style={{ minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', marginBottom: '40px', fontSize: '0.9rem', lineHeight: '1.5' }}>
+          {bootLog.map((log, i) => (
+            <div key={i} style={{ marginBottom: '8px' }}>{`> ${log}`}</div>
+          ))}
+          <div style={{ animation: 'blink 1s step-end infinite' }}>_</div>
+        </div>
+
+        <div>
+          <div style={{ marginBottom: '15px', fontSize: '1rem' }}>
+            लोड हो रहा है: [{barString}] {Math.round(progress)}%
+          </div>
+        </div>
+      </div>
+      
+      {/* Load custom Sarpanch font from the public folder */}
+      <style>{`
+        @font-face {
+          font-family: 'Sarpanch';
+          src: url('/fonts/Sarpanch-Regular.ttf') format('truetype');
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+      `}</style>
+    </div>
+  )
+}
+// --------------------------------------------------------
 
 function Moon() {
   const moonRef = useRef()
@@ -166,8 +255,8 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
 }
 
 export default function App() {
-  // Maintained your 1024px tablet breakpoint fix
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false)
+  const [hasLoaded, setHasLoaded] = useState(false) 
 
   useEffect(() => {
     const checkDevice = () => {
@@ -219,6 +308,11 @@ export default function App() {
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       
+      {/* Renders the retro boot screen over everything until assets finish downloading */}
+      {!hasLoaded && (
+        <TerminalBootLoader setHasLoaded={setHasLoaded} />
+      )}
+      
       {isUIOpen && !isLocked && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
           <UserCursor name="Pratyush" color="#890808" size={28} />
@@ -262,7 +356,8 @@ export default function App() {
         </div>
       )}
 
-      {!isLocked && !isUIOpen && (
+      {/* The controls menu is blocked until the boot screen finishes (hasLoaded is true) */}
+      {!isLocked && !isUIOpen && hasLoaded && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.85)', zIndex: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'monospace', pointerEvents: 'none' }}>
           <h2 style={{ color: '#00ffcc', letterSpacing: '2px', marginBottom: '40px', fontSize: '2rem' }}>SYSTEM CONTROLS</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px 40px', textTransform: 'uppercase', fontSize: '1.1rem' }}>
@@ -283,11 +378,9 @@ export default function App() {
         </div>
       )}
 
-      {/* OPTIMIZATION: Capped Pixel Ratio (dpr) to save GPU on high-res screens */}
       <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 75, near: 0.1, far: 1000 }}>
         <color attach="background" args={['#000000']} />
         
-        {/* OPTIMIZATION: Wrapped all heavy 3D assets in Suspense */}
         <Suspense fallback={null}>
           <Environment preset="city" />
 
@@ -296,17 +389,13 @@ export default function App() {
           <SkyboxModel />
           <Moon />
           
-          {/* OPTIMIZATION: Adaptive helpers lower resolution automatically if the laptop drops frames */}
           <AdaptiveDpr pixelated />
           <AdaptiveEvents />
           
           <ambientLight intensity={1.5} />
-          {/* OPTIMIZATION: Removed castShadow from pointLight (Calculates shadows 6 times) */}
           <pointLight position={[0, 2.6, 0]} intensity={2} />
-          {/* OPTIMIZATION: Shifted shadow to directional light, capped shadow-map memory */}
           <directionalLight position={[100, 50, 50]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
 
-          {/* OPTIMIZATION: Paused the Physics engine loop whenever the OS UI is open */}
           <Physics gravity={[0, -9.81, 0]} paused={isUIOpen}>
             <RespawnTrigger rigidBodyRef={rigidBodyRef} playerState={playerState} />
             <CreditsWhiteboard />
