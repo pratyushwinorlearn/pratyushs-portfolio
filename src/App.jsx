@@ -331,10 +331,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen }) {
 
       if (key === 'e') {
         if (!playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
-          
-          // 🚨 FIX: Expanded the distance check from 2.5 to 5.0!
-          // Now, if you are anywhere near the front half of the room when you hit E, 
-          // it will guarantee the objective clears instantly on the first try.
           const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
           if (doorDist < 5.0) {
             playerState.hasOpenedDoor = true; 
@@ -362,7 +358,8 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen }) {
   useFrame(() => {
     const prompt = document.getElementById('interact-prompt')
     if (prompt) {
-      if (playerState.isSitting && playerState.sitType === 'desk') {
+      // 🚨 FIX: Added `document.pointerLockElement` so it only shows when the game is unpaused!
+      if (playerState.isSitting && playerState.sitType === 'desk' && document.pointerLockElement) {
         prompt.style.display = 'block'
         if (playerState.mode === 'fpp') {
           prompt.innerText = '[ I ] INTERACT WITH TERMINAL'
