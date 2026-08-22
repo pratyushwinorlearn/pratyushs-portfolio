@@ -7,6 +7,6 @@ import * as THREE from 'three'
 export function createPlayerState() {
   return {
     position: new THREE.Vector3(0, 1.2, 3),
-    mode: 'fpp', // 'fpp' | 'tpp' — toggled by CameraRig on keypress
+    mode: 'tpp', // 'fpp' | 'tpp' — toggled by CameraRig on keypress
   }
 }
