@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from '@react-three/rapier'
 import { useTexture, Environment, useGLTF, Text, AdaptiveDpr, AdaptiveEvents, useProgress } from '@react-three/drei' 
+import * as THREE from 'three'
+
 import Room from './components/Room.jsx'
 import Player from './components/Player.jsx'
 import CameraRig from './components/CameraRig.jsx'
@@ -12,18 +14,16 @@ import UserCursor from './components/UserCursor.jsx'
 import InteractiveCrowbar from './components/InteractiveCrowbar.jsx'
 import MobilePortfolio from './components/mobile-portfolio/MobilePortfolio.jsx'
 
-// --- 🚨 UPDATED: RETRO TERMINAL BOOT LOADER (HINDI + SARPANCH FONT) ---
+// --- RETRO TERMINAL BOOT LOADER ---
 function TerminalBootLoader({ setHasLoaded }) {
   const { progress } = useProgress()
   const [bootLog, setBootLog] = useState([])
   
-  // Retro ASCII Progress Bar Math
   const totalBlocks = 40
   const filledBlocks = Math.floor((progress / 100) * totalBlocks)
   const barString = '█'.repeat(filledBlocks) + '░'.repeat(totalBlocks - filledBlocks)
 
   useEffect(() => {
-    // Translated, sentence-cased Hindi system diagnostic logs
     const logs = [
       "बायोस दिनांक 08/22/26 संस्करण 2.0.4",
       "सीपीयू: प्रत्युष न्यूरल कर्नेल... ठीक है",
@@ -40,7 +40,6 @@ function TerminalBootLoader({ setHasLoaded }) {
     setBootLog(logs.slice(0, currentStep + 1))
 
     if (progress >= 100) {
-      // Hold at 100% for 1.2 seconds so the user can appreciate the boot screen
       const t = setTimeout(() => setHasLoaded(true), 1200)
       return () => clearTimeout(t)
     }
@@ -55,27 +54,21 @@ function TerminalBootLoader({ setHasLoaded }) {
       fontFamily: '"Sarpanch", "Courier New", Courier, monospace',
       cursor: 'none', overflow: 'hidden'
     }}>
-      {/* CRT Scanline Overlay */}
       <div style={{
         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
         background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%)',
         backgroundSize: '100% 4px', pointerEvents: 'none', zIndex: 10
       }} />
       
-      {/* Terminal Glow Effect */}
       <div style={{ width: '80%', maxWidth: '900px', zIndex: 20, textShadow: '0px 0px 6px rgba(255,183,3,0.6)' }}>
-        
-        {/* 🚨 FIX: Changed Title */}
         <h1 style={{ fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '2px', lineHeight: '1.2' }}>
           Pratyush's Portfolio
         </h1>
         
-        {/* 🚨 Smaller Font & adjusted margins */}
         <p style={{ fontSize: '1rem', borderBottom: '2px solid #ffb703', paddingBottom: '15px', margin: '0 0 30px 0', letterSpacing: '1px' }}>
           (c) कॉपीराइट शेखर प्रत्युष
         </p>
         
-        {/* 🚨 FIX: Removed fixed height & flex-end. Using minHeight and flex-start stops it from overflowing upwards! */}
         <div style={{ minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', marginBottom: '40px', fontSize: '0.9rem', lineHeight: '1.5' }}>
           {bootLog.map((log, i) => (
             <div key={i} style={{ marginBottom: '8px' }}>{`> ${log}`}</div>
@@ -90,7 +83,6 @@ function TerminalBootLoader({ setHasLoaded }) {
         </div>
       </div>
       
-      {/* Load custom Sarpanch font from the public folder */}
       <style>{`
         @font-face {
           font-family: 'Sarpanch';
@@ -103,23 +95,45 @@ function TerminalBootLoader({ setHasLoaded }) {
 }
 // --------------------------------------------------------
 
-function Moon() {
-  const moonRef = useRef()
-  const moonTexture = useTexture('/moon/textures/Material.002_diffuse.jpeg')
+// 🚨 FIX 1: Earth is now incredibly massive and positioned for a cinematic view
+function Earth() {
+  const earthRef = useRef()
+  const earthTexture = useTexture('/earth-texture.jpg')
 
   useFrame((state) => {
-    if (moonRef.current) {
-      moonRef.current.rotation.y = state.clock.getElapsedTime() * 0.05
+    if (earthRef.current) {
+      earthRef.current.rotation.y = state.clock.getElapsedTime() * 0.005
     }
   })
 
   return (
-    <group ref={moonRef} position={[-100, 5, -10]}>
+    // Brought it forward to -550 and up to 150
+    <group ref={earthRef} position={[-600, 100, -20]}>
       <mesh>
-        <sphereGeometry args={[6, 64, 64]} />
-        <meshStandardMaterial map={moonTexture} />
+        {/* Scale increased to 250 so it dominates the frame */}
+        <sphereGeometry args={[25, 64, 64]} />
+        <meshStandardMaterial map={earthTexture} />
       </mesh>
     </group>
+  )
+}
+
+// 🚨 FIX 2: Mirrored wrapping fixes the ugly grid seams, making it look natural!
+function LunarSurface() {
+  const moonTexture = useTexture('/moon-texture.jpg')
+  
+  // The magic trick: MirroredRepeat flips the image every other tile to hide non-seamless borders
+  moonTexture.wrapS = moonTexture.wrapT = THREE.MirroredRepeatWrapping
+  // Tile it 30 times. This is the sweet spot between sharpness and not looking like a repetitive pattern.
+  moonTexture.repeat.set(30, 30)
+
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={[0, -0.05, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[1000, 1000]} />
+        <meshStandardMaterial map={moonTexture} color="#aaaaaa" />
+      </mesh>
+    </RigidBody>
   )
 }
 
@@ -154,7 +168,7 @@ function CreditsWhiteboard() {
           3D ASSETS (Sketchfab):{"\n\n"}
           Control Room by amogusstrikesback2{"\n"}
           Skybox of Constellations by tiunov.se{"\n"}
-          Moon by Akshat{"\n"}
+          Earth Texture{"\n"}
           Whiteboard by Reflex_Entertainment{"\n"}
           Old Chair by KZNYKN{"\n"}
           Character and its animations from Mixamo{"\n\n"}
@@ -239,7 +253,7 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
     if (rigidBodyRef.current) {
       try {
         const pos = rigidBodyRef.current.translation()
-        if (pos.y < -20) {
+        if (pos.y < -30) {
           playerState.isSitting = false
           playerState.sitType = null
           rigidBodyRef.current.setTranslation({ x: 0, y: 1.2, z: -4 }, true)
@@ -308,7 +322,6 @@ export default function App() {
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       
-      {/* Renders the retro boot screen over everything until assets finish downloading */}
       {!hasLoaded && (
         <TerminalBootLoader setHasLoaded={setHasLoaded} />
       )}
@@ -356,7 +369,6 @@ export default function App() {
         </div>
       )}
 
-      {/* The controls menu is blocked until the boot screen finishes (hasLoaded is true) */}
       {!isLocked && !isUIOpen && hasLoaded && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.85)', zIndex: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'monospace', pointerEvents: 'none' }}>
           <h2 style={{ color: '#00ffcc', letterSpacing: '2px', marginBottom: '40px', fontSize: '2rem' }}>SYSTEM CONTROLS</h2>
@@ -368,9 +380,7 @@ export default function App() {
             <div style={{ textAlign: 'right', color: '#888' }}>[ V ]</div><div>Toggle Camera (FPP / TPP)</div>
             <div style={{ textAlign: 'right', color: '#888' }}>[ E ]</div><div>Sit / Stand</div>
             <div style={{ textAlign: 'right', color: '#888' }}>[ I ]</div><div>Access Terminal (When Seated)</div>
-            
             <div style={{ textAlign: 'right', color: '#888' }}>[ G ]</div><div>Drop Item</div>
-            
             <div style={{ textAlign: 'right', color: '#888' }}>[ ESC ]</div><div>Pause / Release Mouse</div>
           </div>
           <div style={{ marginTop: '60px', color: '#ff2a5f', fontSize: '1.2rem', animation: 'pulse 1.5s infinite' }}>CLICK ANYWHERE TO RESUME</div>
@@ -378,7 +388,7 @@ export default function App() {
         </div>
       )}
 
-      <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 75, near: 0.1, far: 1000 }}>
+      <Canvas shadows dpr={[1, 1.5]} camera={{ fov: 75, near: 0.1, far: 2000 }}>
         <color attach="background" args={['#000000']} />
         
         <Suspense fallback={null}>
@@ -387,7 +397,8 @@ export default function App() {
           <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} />
           
           <SkyboxModel />
-          <Moon />
+          
+          <Earth />
           
           <AdaptiveDpr pixelated />
           <AdaptiveEvents />
@@ -397,6 +408,9 @@ export default function App() {
           <directionalLight position={[100, 50, 50]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
 
           <Physics gravity={[0, -9.81, 0]} paused={isUIOpen}>
+            
+            <LunarSurface />
+            
             <RespawnTrigger rigidBodyRef={rigidBodyRef} playerState={playerState} />
             <CreditsWhiteboard />
             <Room playerState={playerState} isUIOpen={isUIOpen} closeUI={() => setIsUIOpen(false)} />
@@ -414,6 +428,7 @@ export default function App() {
   )
 }
 
-useTexture.preload('/moon/textures/Material.002_diffuse.jpeg')
+useTexture.preload('/earth-texture.jpg')
+useTexture.preload('/moon-texture.jpg')
 useGLTF.preload('/skybox_of_constellations/scene.gltf')
 useGLTF.preload('/whiteboard/scene.gltf')

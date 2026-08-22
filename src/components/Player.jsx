@@ -34,11 +34,9 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
   
   const spawnGraceTimer = useRef(0)
   
-  // 🚨 NEW: Ejection lock timers to fix the Vercel standing bug
   const wasSitting = useRef(false)
   const standUpGraceTimer = useRef(0)
 
-  // 🚨 Virtual accumulators for the physics staleness fix
   const virtualPos = useRef(new THREE.Vector3(0.6, 2, -3.5))
   const lastPhysicsPos = useRef(new THREE.Vector3(0.6, 2, -3.5))
 
@@ -97,13 +95,12 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     if (playerState.isSitting) {
       wasSitting.current = true;
-      standUpGraceTimer.current = 0.2; // 200ms teleport window
+      standUpGraceTimer.current = 0.2; 
 
       verticalVelocity.current = 0 
       actionRef.current = playerState.sitType === 'sofa' ? 'mixamo.com.001' : 'sitting' 
       const pos = rb.translation()
       
-      // Keep virtual tracker perfectly synced while sitting
       virtualPos.current.set(pos.x, pos.y, pos.z)
       lastPhysicsPos.current.set(pos.x, pos.y, pos.z)
       
@@ -116,17 +113,13 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
       return 
     }
 
-    // 🚨 FIX: Allow the physics engine to resolve the stand-up teleport before grabbing control!
     if (standUpGraceTimer.current > 0) {
       standUpGraceTimer.current -= delta;
       
-      // Sync virtual position to wherever the furniture teleported us
       const pos = rb.translation();
       virtualPos.current.set(pos.x, pos.y, pos.z);
       lastPhysicsPos.current.set(pos.x, pos.y, pos.z);
       playerState.position.set(pos.x, pos.y, pos.z);
-
-      // Wait for the teleport to finish before processing movement
       return;
     }
 
@@ -153,11 +146,22 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     spawnGraceTimer.current += delta
     const isSpawnGrace = spawnGraceTimer.current < 0.5
 
+    // 🚨 NEW: LUNAR PHYSICS LOGIC 🚨
+    const pos = rb.translation()
+    // Define the boundaries of the control room. If the player steps outside this box, zero-G activates!
+    const isOutside = pos.z > -1.5 || pos.x > 4.5 || pos.x < -3.0 || pos.z < -6.5
+    
+    // Moon gravity is exactly 1/6th of Earth gravity
+    const activeGravity = isOutside ? (GRAVITY / 6) : GRAVITY
+    
+    // Boost the initial jump force by 1.8x. Combined with low gravity, this gives massive airtime!
+    const activeJumpForce = isOutside ? (JUMP_FORCE * 1.8) : JUMP_FORCE
+
     if (grounded) {
-      if (keys.current.space) verticalVelocity.current = JUMP_FORCE
+      if (keys.current.space) verticalVelocity.current = activeJumpForce
       else verticalVelocity.current = Math.max(verticalVelocity.current, -0.1)
     } else if (!isSpawnGrace) {
-      verticalVelocity.current += GRAVITY * delta
+      verticalVelocity.current += activeGravity * delta
       verticalVelocity.current = Math.max(verticalVelocity.current, -20.0)
     } else {
       verticalVelocity.current = 0 
@@ -165,20 +169,16 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     
     move.y = verticalVelocity.current * delta
 
-    // 🚨 165Hz physics staleness resolution
     controller.computeColliderMovement(collider, move)
     const corrected = controller.computedMovement()
 
-    const pos = rb.translation()
     const isPhysicsStep = pos.x !== lastPhysicsPos.current.x || pos.y !== lastPhysicsPos.current.y || pos.z !== lastPhysicsPos.current.z
     
     if (isPhysicsStep) {
-      // Sync our virtual tracker to the true physics position
       virtualPos.current.set(pos.x, pos.y, pos.z)
       lastPhysicsPos.current.set(pos.x, pos.y, pos.z)
     }
 
-    // Accumulate the movement safely
     virtualPos.current.x += corrected.x
     virtualPos.current.y += corrected.y
     virtualPos.current.z += corrected.z
