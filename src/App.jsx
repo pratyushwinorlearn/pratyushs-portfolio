@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, Suspense } from 'react' 
+import { useEffect, useRef, useState, Suspense, useMemo } from 'react' 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from '@react-three/rapier'
 import { useTexture, Environment, useGLTF, Text, AdaptiveDpr, AdaptiveEvents, useProgress } from '@react-three/drei' 
@@ -106,27 +106,142 @@ function Earth() {
   })
 
   return (
-    <group ref={earthRef} position={[400, 150, 400]}>
+    <group ref={earthRef} position={[50, 100, 700]}>
       <mesh>
-        <sphereGeometry args={[150, 64, 64]} />
+        <sphereGeometry args={[25, 25, 25]} />
         <meshStandardMaterial map={earthTexture} />
       </mesh>
     </group>
   )
 }
 
-// 🚨 UPDATED: The wall is now much thinner, properly positioned, and color-matched!
 function RoomWall() {
+  const [tex1, tex2, tex3] = useTexture([
+    '/india-today-intern.jpg', 
+    '/moon-texture.jpg',
+    '/earth-texture.jpg' 
+  ])
+
+  const circleTexture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 16
+    canvas.height = 16
+    const context = canvas.getContext('2d')
+    context.beginPath()
+    context.arc(8, 8, 8, 0, 2 * Math.PI)
+    context.fillStyle = 'white'
+    context.fill()
+    return new THREE.CanvasTexture(canvas)
+  }, [])
+
+  const starCount = 200;
+  const [starPositions, starPhases, starSpeeds, initialColors] = useMemo(() => {
+    const positions = new Float32Array(starCount * 3);
+    const phases = new Float32Array(starCount);
+    const speeds = new Float32Array(starCount);
+    const colors = new Float32Array(starCount * 3).fill(1); 
+    
+    for (let i = 0; i < starCount; i++) {
+      positions[i * 3] = -2.57; 
+      positions[i * 3 + 1] = 1.45 + (Math.random() - 0.5) * 3.4; 
+      positions[i * 3 + 2] = -4.4 + (Math.random() - 0.5) * 3.5; 
+      phases[i] = Math.random() * Math.PI * 2; 
+      speeds[i] = 0.5 + Math.random() * 2.0; 
+    }
+    return [positions, phases, speeds, colors];
+  }, []);
+
+  const starsRef = useRef();
+
+  useFrame((state) => {
+    if (starsRef.current) {
+      const time = state.clock.getElapsedTime();
+      const colors = starsRef.current.geometry.attributes.color.array;
+      
+      for (let i = 0; i < starCount; i++) {
+        let brightness = (Math.sin(time * starSpeeds[i] + starPhases[i]) + 1) / 2;
+        brightness = Math.pow(brightness, 2.5); 
+        
+        colors[i * 3] = brightness;     
+        colors[i * 3 + 1] = brightness; 
+        colors[i * 3 + 2] = brightness; 
+      }
+      starsRef.current.geometry.attributes.color.needsUpdate = true;
+    }
+  });
+
   return (
-    <RigidBody type="fixed" colliders="cuboid">
-      {/* Pushed slightly back to -2.7 so it doesn't clip your whiteboard */}
-      <mesh position={[-2.6, 1.45, -4.4]}>
-        {/* Thickness reduced from 1 to 0.2, height to 5, length to 7 */}
-        <boxGeometry args={[0.01, 3.5, 3.6]} />
-        {/* Color matched to the dark beige/grey of the room, with max roughness so it's not shiny */}
-        <meshStandardMaterial color="#3f3b33" roughness={1} />
-      </mesh>
-    </RigidBody>
+    <group>
+      <RigidBody type="fixed" colliders="cuboid">
+        <mesh position={[-2.6, 1.45, -4.4]}>
+          <boxGeometry args={[0.05, 3.5, 3.6]} />
+          <meshBasicMaterial color="#000000" />
+        </mesh>
+      </RigidBody>
+
+      <points ref={starsRef}>
+        <bufferGeometry>
+          <bufferAttribute 
+            attach="attributes-position" 
+            count={starCount} 
+            array={starPositions} 
+            itemSize={3} 
+          />
+          <bufferAttribute 
+            attach="attributes-color" 
+            count={starCount} 
+            array={initialColors} 
+            itemSize={3} 
+          />
+        </bufferGeometry>
+        <pointsMaterial 
+          size={0.015} 
+          map={circleTexture} 
+          vertexColors={true} 
+          transparent={true} 
+          alphaTest={0.01} 
+          sizeAttenuation={true} 
+          depthWrite={false}
+        />
+      </points>
+
+      <group position={[-2.55, 1.6, -4.4]} rotation={[0, Math.PI / 2, 0]}>
+        
+        <group position={[-0.9, 0, 0]}>
+          <mesh position={[0, 0, 0.015]}>
+            <planeGeometry args={[0.6, 0.8]} />
+            <meshStandardMaterial map={tex1} />
+          </mesh>
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[0.7, 0.9, 0.02]} />
+            <meshStandardMaterial color="#000000" />
+          </mesh>
+        </group>
+
+        <group position={[0, 0, 0]}>
+          <mesh position={[0, 0, 0.015]}>
+            <planeGeometry args={[0.6, 0.8]} />
+            <meshStandardMaterial map={tex2} />
+          </mesh>
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[0.7, 0.9, 0.02]} />
+            <meshStandardMaterial color="#000000" />
+          </mesh>
+        </group>
+
+        <group position={[0.9, 0, 0]}>
+          <mesh position={[0, 0, 0.015]}>
+            <planeGeometry args={[0.6, 0.8]} />
+            <meshStandardMaterial map={tex3} />
+          </mesh>
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[0.7, 0.9, 0.02]} />
+            <meshStandardMaterial color="#000000" />
+          </mesh>
+        </group>
+
+      </group>
+    </group>
   )
 }
 
@@ -137,7 +252,7 @@ function LunarSurface() {
   moonTexture.repeat.set(30, 30)
 
   return (
-    <RigidBody type="fixed" colliders="cuboid" position={[0, -0.05, 0]}>
+    <RigidBody type="fixed" colliders="cuboid" position={[0, -0.004, 0]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[1000, 1000]} />
         <meshStandardMaterial map={moonTexture} color="#aaaaaa" />
@@ -187,7 +302,14 @@ function CreditsWhiteboard() {
   )
 }
 
-function UIManager({ playerState, setIsUIOpen }) {
+function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen }) {
+  
+  useEffect(() => {
+    if (isUIOpen) {
+      playerState.hasUsedTerminal = true;
+    }
+  }, [isUIOpen, playerState]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       const key = e.key.toLowerCase()
@@ -196,6 +318,27 @@ function UIManager({ playerState, setIsUIOpen }) {
         if (playerState.isSitting && playerState.mode === 'fpp') {
           document.exitPointerLock() 
           setIsUIOpen(true) 
+        }
+      }
+
+      if (key === 'f') {
+        const dist = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
+        if (dist < 1.5 && !playerState.isSitting) {
+          document.exitPointerLock() 
+          setIsGalleryOpen(true) 
+        }
+      }
+
+      if (key === 'e') {
+        if (!playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
+          
+          // 🚨 FIX: Expanded the distance check from 2.5 to 5.0!
+          // Now, if you are anywhere near the front half of the room when you hit E, 
+          // it will guarantee the objective clears instantly on the first try.
+          const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
+          if (doorDist < 5.0) {
+            playerState.hasOpenedDoor = true; 
+          }
         }
       }
 
@@ -214,7 +357,7 @@ function UIManager({ playerState, setIsUIOpen }) {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [playerState, setIsUIOpen])
+  }, [playerState, setIsUIOpen, setIsGalleryOpen])
 
   useFrame(() => {
     const prompt = document.getElementById('interact-prompt')
@@ -231,6 +374,16 @@ function UIManager({ playerState, setIsUIOpen }) {
       }
     }
 
+    const galleryPrompt = document.getElementById('gallery-prompt')
+    if (galleryPrompt) {
+      const dist = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
+      if (dist < 1.5 && !playerState.isSitting && document.pointerLockElement) {
+        galleryPrompt.style.display = 'block'
+      } else {
+        galleryPrompt.style.display = 'none'
+      }
+    }
+
     const welcomeHint = document.getElementById('welcome-hint')
     if (welcomeHint) {
       if (playerState.isSitting) {
@@ -239,7 +392,13 @@ function UIManager({ playerState, setIsUIOpen }) {
 
       if (!playerState.hasSatDown && document.pointerLockElement) {
         welcomeHint.style.display = 'block'
-      } else {
+        welcomeHint.innerText = 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
+      } 
+      else if (playerState.hasSatDown && playerState.hasUsedTerminal && !playerState.hasOpenedDoor && document.pointerLockElement) {
+        welcomeHint.style.display = 'block'
+        welcomeHint.innerText = 'OBJECTIVE: Go to the door and press [ E ] to open it.'
+      } 
+      else {
         welcomeHint.style.display = 'none'
       }
     }
@@ -296,6 +455,7 @@ export default function App() {
   const colliderRef = useRef(null)
   
   const [isUIOpen, setIsUIOpen] = useState(false)
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false) 
   const [isLocked, setIsLocked] = useState(false)
   const [showCameraHint, setShowCameraHint] = useState(false)
 
@@ -324,8 +484,37 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [isUIOpen, isLocked])
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        setIsGalleryOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [])
+
   if (isMobileOrTablet) {
     return <MobilePortfolio />
+  }
+
+  const cleanPromptStyle = {
+    position: 'absolute', 
+    bottom: '15%', 
+    left: '50%', 
+    transform: 'translateX(-50%)', 
+    color: '#ffffff', 
+    fontFamily: 'sans-serif', 
+    fontWeight: 'bold',
+    fontSize: '1.2rem', 
+    backgroundColor: 'rgba(0,0,0,0.85)', 
+    padding: '10px 24px', 
+    border: '2px solid #ffffff', 
+    borderRadius: '8px', 
+    display: 'none', 
+    zIndex: 100, 
+    pointerEvents: 'none',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.5)'
   }
 
   return (
@@ -335,7 +524,34 @@ export default function App() {
         <TerminalBootLoader setHasLoaded={setHasLoaded} />
       )}
       
-      {isUIOpen && !isLocked && (
+      {isGalleryOpen && !isLocked && (
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(5, 4, 3, 0.97)', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <h2 style={{ color: '#ffb703', fontFamily: '"Sarpanch", monospace', fontSize: '2.5rem', marginBottom: '40px', letterSpacing: '2px' }}>ARCHIVED MEMORIES</h2>
+          
+          <div style={{ display: 'flex', gap: '40px', alignItems: 'center' }}>
+            <div style={{ padding: '15px', backgroundColor: '#111', border: '1px solid #333', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
+              <img src="/india-today-intern.jpg" style={{ width: '300px', height: '400px', objectFit: 'cover' }} alt="Gallery 1" />
+            </div>
+            <div style={{ padding: '15px', backgroundColor: '#111', border: '1px solid #333', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
+              <img src="/moon-texture.jpg" style={{ width: '300px', height: '400px', objectFit: 'cover' }} alt="Gallery 2" />
+            </div>
+            <div style={{ padding: '15px', backgroundColor: '#111', border: '1px solid #333', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
+              <img src="/earth-texture.jpg" style={{ width: '300px', height: '400px', objectFit: 'cover' }} alt="Gallery 3" />
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setIsGalleryOpen(false)} 
+            style={{ marginTop: '60px', padding: '12px 30px', backgroundColor: 'transparent', color: '#ff2a5f', border: '2px solid #ff2a5f', fontFamily: 'monospace', fontSize: '1.2rem', cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 42, 95, 0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+          >
+            [ ESC ] CLOSE GALLERY
+          </button>
+        </div>
+      )}
+
+      {(isUIOpen || isGalleryOpen) && !isLocked && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
           <UserCursor name="Pratyush" color="#890808" size={28} />
         </div>
@@ -348,15 +564,21 @@ export default function App() {
         </div>
       )}
 
-      {isUIOpen && isLocked && (
+      {(isUIOpen || isGalleryOpen) && isLocked && (
         <div style={{ position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)', color: '#00ffcc', fontFamily: 'monospace', fontSize: '1.2rem', backgroundColor: 'rgba(0,0,0,0.85)', padding: '10px 20px', border: '1px solid #00ffcc', borderRadius: '4px', zIndex: 100, pointerEvents: 'none', boxShadow: '0 0 10px rgba(0, 255, 204, 0.3)', animation: 'pulse 1.5s infinite' }}>
           PRESS [ ESC ] TO UNLOCK CURSOR
         </div>
       )}
       
-      {!isUIOpen && (
-        <div id="interact-prompt" style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', color: '#ff2a5f', fontFamily: 'monospace', fontSize: '1.5rem', backgroundColor: 'rgba(0,0,0,0.7)', padding: '10px 20px', border: '1px solid #ff2a5f', display: 'none', zIndex: 100, pointerEvents: 'none' }}>
+      {!isUIOpen && !isGalleryOpen && (
+        <div id="interact-prompt" style={cleanPromptStyle}>
           [ I ] INTERACT WITH TERMINAL
+        </div>
+      )}
+
+      {!isUIOpen && !isGalleryOpen && (
+        <div id="gallery-prompt" style={cleanPromptStyle}>
+          [ F ] VIEW GALLERY
         </div>
       )}
 
@@ -364,21 +586,21 @@ export default function App() {
         OBJECTIVE: Approach the main desk and press [ E ] to sit.
       </div>
 
-      <div id="warning-message" style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', color: '#ff4444', fontFamily: 'monospace', fontSize: '1.2rem', backgroundColor: 'rgba(20,0,0,0.85)', padding: '8px 16px', border: '1px solid #ff4444', borderRadius: '4px', display: 'none', zIndex: 100, pointerEvents: 'none', boxShadow: '0 0 10px rgba(255, 0, 0, 0.3)' }}>
+      <div id="warning-message" style={{ ...cleanPromptStyle, top: '20%', bottom: 'auto', color: '#ff4444', borderColor: '#ff4444' }}>
         PRESS [ E ] TO STAND UP FIRST
       </div>
 
-      <div id="drop-prompt" style={{ position: 'absolute', bottom: '10%', right: '5%', color: '#ffb703', fontFamily: 'monospace', fontSize: '1.2rem', backgroundColor: 'rgba(20,15,0,0.85)', padding: '10px 20px', border: '1px solid #ffb703', borderRadius: '4px', display: 'none', zIndex: 100, pointerEvents: 'none', boxShadow: '0 0 10px rgba(255, 183, 3, 0.3)' }}>
+      <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
         [ G ] DROP CROWBAR
       </div>
 
-      {isLocked && !isUIOpen && (
+      {isLocked && !isUIOpen && !isGalleryOpen && (
         <div style={{ position: 'absolute', bottom: '20px', right: '20px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'monospace', fontSize: '0.85rem', zIndex: 50, pointerEvents: 'none' }}>
           [ ESC ] Controls Menu
         </div>
       )}
 
-      {!isLocked && !isUIOpen && hasLoaded && (
+      {!isLocked && !isUIOpen && !isGalleryOpen && hasLoaded && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.85)', zIndex: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'monospace', pointerEvents: 'none' }}>
           <h2 style={{ color: '#00ffcc', letterSpacing: '2px', marginBottom: '40px', fontSize: '2rem' }}>SYSTEM CONTROLS</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px 40px', textTransform: 'uppercase', fontSize: '1.1rem' }}>
@@ -387,9 +609,9 @@ export default function App() {
             <div style={{ textAlign: 'right', color: '#888' }}>[ Shift ]</div><div>Crouch / Sneak</div>
             <div style={{ textAlign: 'right', color: '#888' }}>[ Space ]</div><div>Jump</div>
             <div style={{ textAlign: 'right', color: '#888' }}>[ V ]</div><div>Toggle Camera (FPP / TPP)</div>
-            <div style={{ textAlign: 'right', color: '#888' }}>[ E ]</div><div>Sit / Stand</div>
-            <div style={{ textAlign: 'right', color: '#888' }}>[ I ]</div><div>Access Terminal (When Seated)</div>
-            <div style={{ textAlign: 'right', color: '#888' }}>[ G ]</div><div>Drop Item</div>
+            <div style={{ textAlign: 'right', color: '#888' }}>[ E ]</div><div>Sit / Stand / Open</div>
+            <div style={{ textAlign: 'right', color: '#888' }}>[ I ]</div><div>Access Terminal</div>
+            <div style={{ textAlign: 'right', color: '#888' }}>[ F ]</div><div>View Gallery</div>
             <div style={{ textAlign: 'right', color: '#888' }}>[ ESC ]</div><div>Pause / Release Mouse</div>
           </div>
           <div style={{ marginTop: '60px', color: '#ff2a5f', fontSize: '1.2rem', animation: 'pulse 1.5s infinite' }}>CLICK ANYWHERE TO RESUME</div>
@@ -403,10 +625,9 @@ export default function App() {
         <Suspense fallback={null}>
           <Environment preset="city" />
 
-          <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} />
+          <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} setIsGalleryOpen={setIsGalleryOpen} isUIOpen={isUIOpen} />
           
           <SkyboxModel />
-          
           <Earth />
           
           <AdaptiveDpr pixelated />
@@ -416,7 +637,7 @@ export default function App() {
           <pointLight position={[0, 2.6, 0]} intensity={2} />
           <directionalLight position={[100, 50, 50]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
 
-          <Physics gravity={[0, -9.81, 0]} paused={isUIOpen}>
+          <Physics gravity={[0, -9.81, 0]} paused={isUIOpen || isGalleryOpen}>
             
             <LunarSurface />
             <RoomWall />
@@ -440,5 +661,6 @@ export default function App() {
 
 useTexture.preload('/earth-texture.jpg')
 useTexture.preload('/moon-texture.jpg')
+useTexture.preload('/india-today-intern.jpg')
 useGLTF.preload('/skybox_of_constellations/scene.gltf')
 useGLTF.preload('/whiteboard/scene.gltf')

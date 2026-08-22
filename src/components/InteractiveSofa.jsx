@@ -10,7 +10,7 @@ export default function InteractiveSofa({ playerState, rigidBodyRef }) {
 
   const sofaX = -0.74   
   const sofaZ = -5.6
-  const triggerRadius = 1.5
+  const triggerRadius = 1.2
 
   const playerSitOffsetX = -0.2
   const playerSitOffsetZ = 0.1
