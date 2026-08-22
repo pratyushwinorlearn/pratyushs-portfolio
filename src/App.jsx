@@ -95,7 +95,6 @@ function TerminalBootLoader({ setHasLoaded }) {
 }
 // --------------------------------------------------------
 
-// 🚨 FIX 1: Earth is now incredibly massive and positioned for a cinematic view
 function Earth() {
   const earthRef = useRef()
   const earthTexture = useTexture('/earth-texture.jpg')
@@ -107,24 +106,34 @@ function Earth() {
   })
 
   return (
-    // Brought it forward to -550 and up to 150
-    <group ref={earthRef} position={[-600, 100, -20]}>
+    <group ref={earthRef} position={[400, 150, 400]}>
       <mesh>
-        {/* Scale increased to 250 so it dominates the frame */}
-        <sphereGeometry args={[25, 64, 64]} />
+        <sphereGeometry args={[150, 64, 64]} />
         <meshStandardMaterial map={earthTexture} />
       </mesh>
     </group>
   )
 }
 
-// 🚨 FIX 2: Mirrored wrapping fixes the ugly grid seams, making it look natural!
+// 🚨 UPDATED: The wall is now much thinner, properly positioned, and color-matched!
+function RoomWall() {
+  return (
+    <RigidBody type="fixed" colliders="cuboid">
+      {/* Pushed slightly back to -2.7 so it doesn't clip your whiteboard */}
+      <mesh position={[-2.6, 1.45, -4.4]}>
+        {/* Thickness reduced from 1 to 0.2, height to 5, length to 7 */}
+        <boxGeometry args={[0.01, 3.5, 3.6]} />
+        {/* Color matched to the dark beige/grey of the room, with max roughness so it's not shiny */}
+        <meshStandardMaterial color="#3f3b33" roughness={1} />
+      </mesh>
+    </RigidBody>
+  )
+}
+
 function LunarSurface() {
   const moonTexture = useTexture('/moon-texture.jpg')
   
-  // The magic trick: MirroredRepeat flips the image every other tile to hide non-seamless borders
   moonTexture.wrapS = moonTexture.wrapT = THREE.MirroredRepeatWrapping
-  // Tile it 30 times. This is the sweet spot between sharpness and not looking like a repetitive pattern.
   moonTexture.repeat.set(30, 30)
 
   return (
@@ -410,6 +419,7 @@ export default function App() {
           <Physics gravity={[0, -9.81, 0]} paused={isUIOpen}>
             
             <LunarSurface />
+            <RoomWall />
             
             <RespawnTrigger rigidBodyRef={rigidBodyRef} playerState={playerState} />
             <CreditsWhiteboard />
