@@ -74,7 +74,7 @@ export default function MobileGamepad({ playerState }) {
     playerState.touchLookDelta.y = 0
   }
 
-  // 🚨 FIX: Bulletproof Hardware-Level Fake Events
+  // --- HARDWARE KEY SIMULATOR ---
   const triggerKey = (keyStr) => {
     const codeStr = keyStr === ' ' ? 'Space' : keyStr === 'ShiftLeft' ? 'ShiftLeft' : `Key${keyStr.toUpperCase()}`;
     const event = new KeyboardEvent('keydown', { key: keyStr, code: codeStr, keyCode: keyStr === ' ' ? 32 : keyStr.toUpperCase().charCodeAt(0), bubbles: true, cancelable: true, composed: true });
@@ -95,12 +95,13 @@ export default function MobileGamepad({ playerState }) {
 
   return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1000, overflow: 'hidden' }}>
+      {/* Invisible Camera Swipe Zone */}
       <div 
         style={{ position: 'absolute', top: 0, right: 0, width: '60%', height: '100%', pointerEvents: 'auto', touchAction: 'none' }}
         onTouchStart={handleCameraTouchStart} onTouchMove={handleCameraTouchMove} onTouchEnd={handleCameraTouchEnd}
       />
 
-      {/* Joystick */}
+      {/* Joystick Zone */}
       <div 
         ref={joystickBaseRef}
         style={{ position: 'absolute', bottom: '40px', left: '40px', width: '100px', height: '100px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', pointerEvents: 'auto', touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -109,22 +110,42 @@ export default function MobileGamepad({ playerState }) {
         <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#ffb703', transform: `translate(${stickPos.x}px, ${stickPos.y}px)`, boxShadow: '0 0 10px rgba(255,183,3,0.8)' }} />
       </div>
 
-      {/* PERMANENT ACTION BUTTONS */}
-      <div style={{ position: 'absolute', bottom: '30px', right: '30px', display: 'flex', gap: '15px', alignItems: 'flex-end', pointerEvents: 'auto' }}>
-        <button style={{ ...btnBase, width: '40px', height: '40px', fontSize: '0.7rem' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('v') }}>V</button>
+      {/* 🚨 UPDATED: PERMANENT CORE ACTION BUTTONS (Right Thumb) */}
+      <div style={{ position: 'absolute', bottom: '20px', right: '20px', display: 'flex', gap: '15px', alignItems: 'flex-end', pointerEvents: 'auto' }}>
         
-        <button 
-          style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.7rem' }} 
-          onTouchStart={(e) => { e.preventDefault(); playerState.isCrouching = true; triggerKey('ShiftLeft') }}
-          onTouchEnd={(e) => { e.preventDefault(); playerState.isCrouching = false; triggerKeyUp('ShiftLeft') }}
-        >CRCH</button>
-        
-        <button style={{ ...btnBase, width: '70px', height: '70px', fontSize: '0.9rem', borderColor: 'rgba(255,255,255,0.6)' }} onTouchStart={(e) => { e.preventDefault(); triggerKey(' ') }}>JUMP</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
+          <button style={{ ...btnBase, width: '45px', height: '45px', fontSize: '0.7rem' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('v') }}>V</button>
+          
+          <button 
+            style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.7rem' }} 
+            onTouchStart={(e) => { e.preventDefault(); playerState.isCrouching = true; triggerKey('ShiftLeft') }}
+            onTouchEnd={(e) => { e.preventDefault(); playerState.isCrouching = false; triggerKeyUp('ShiftLeft') }}
+          >CRCH</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
+          {/* E is now PERMANENT - Handles Doors, Sitting, Standing, and Pickups naturally! */}
+          <button 
+            style={{ ...btnBase, width: '60px', height: '60px', fontSize: '1.2rem', borderColor: '#00ffcc', color: '#00ffcc', boxShadow: '0 0 10px rgba(0,255,204,0.4)' }} 
+            onTouchStart={(e) => { e.preventDefault(); triggerKey('e') }}
+          >E</button>
+          
+          <button 
+            style={{ ...btnBase, width: '70px', height: '70px', fontSize: '0.9rem', borderColor: 'rgba(255,255,255,0.6)' }} 
+            onTouchStart={(e) => { e.preventDefault(); triggerKey(' ') }}
+          >JUMP</button>
+        </div>
+
       </div>
 
-      {/* CONTEXTUAL BUTTONS */}
-      <div style={{ position: 'absolute', bottom: '130px', right: '40px', display: 'flex', gap: '15px', pointerEvents: 'auto' }}>
-        <button id="mobile-btn-drop" style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.8rem', display: 'none' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('g') }}>DROP</button>
+      {/* DYNAMIC CONTEXTUAL BUTTONS (Handled by UIManager) */}
+      <div style={{ position: 'absolute', bottom: '120px', right: '180px', display: 'flex', gap: '15px', pointerEvents: 'auto' }}>
+        <button 
+          id="mobile-btn-drop" 
+          style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.8rem', display: 'none' }} 
+          onTouchStart={(e) => { e.preventDefault(); triggerKey('g') }}
+        >DROP</button>
+        
         <button 
           id="mobile-btn-action" 
           style={{ ...btnBase, width: '65px', height: '65px', fontSize: '1rem', display: 'none' }} 
@@ -133,8 +154,7 @@ export default function MobileGamepad({ playerState }) {
             const keyToFire = e.currentTarget.getAttribute('data-key') || 'e';
             triggerKey(keyToFire);
           }}
-        >
-        </button>
+        ></button>
       </div>
     </div>
   )

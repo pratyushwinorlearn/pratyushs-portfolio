@@ -40,12 +40,9 @@ function TerminalBootLoader({ setHasLoaded }) {
     const currentStep = Math.floor((progress / 100) * (logs.length - 1))
     setBootLog(logs.slice(0, currentStep + 1))
 
-    if (progress >= 100) {
-      setIsReadyToStart(true)
-    }
+    if (progress >= 100) setIsReadyToStart(true)
   }, [progress])
 
-  // 🚨 FIX: Forces Chrome into Fullscreen when you click the Start button
   const handleStart = () => {
     if (isReadyToStart) {
       if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
@@ -118,6 +115,7 @@ function TerminalBootLoader({ setHasLoaded }) {
     </div>
   )
 }
+// --------------------------------------------------------
 
 function Earth() {
   const earthRef = useRef()
@@ -300,17 +298,16 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
 
       canDrop = playerState.hasCrowbar
 
-      const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
-      
+      // 🚨 FIX: E is permanent on mobile, so the dynamic button only shows OS or VIEW
       if (playerState.isSitting && playerState.sitType === 'desk') {
         showMobileAction = true; actionKey = 'i'; actionLabel = 'OS'; actionColor = '#ff2a5f';
       } else if (distToGallery < 1.5 && !playerState.isSitting) {
         showMobileAction = true; actionKey = 'f'; actionLabel = 'VIEW'; actionColor = '#ffb703';
-      } else if (doorDist < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
+      } 
+
+      const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
+      if (doorDist < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
         showDoorText = true;
-        showMobileAction = true; actionKey = 'e'; actionLabel = 'OPEN'; actionColor = '#00ffcc';
-      } else if (!playerState.hasSatDown || playerState.isSitting) {
-        showMobileAction = true; actionKey = 'e'; actionLabel = 'E'; actionColor = '#00ffcc';
       }
 
       if (!playerState.hasSatDown) {
@@ -327,6 +324,7 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
     if (dropPrompt) dropPrompt.style.display = canDrop ? 'block' : 'none'
 
     if (mobileBtnDrop) mobileBtnDrop.style.display = canDrop ? 'flex' : 'none'
+    
     if (mobileBtnAction) {
       mobileBtnAction.style.display = showMobileAction ? 'flex' : 'none'
       if (showMobileAction) {
@@ -380,8 +378,6 @@ export default function App() {
       setIsTouchDevice(hasTouch)
       setIsPortrait(window.innerHeight > window.innerWidth)
       
-      // 🚨 GLOBAL POINTER LOCK HACK FOR MOBILE 🚨
-      // Tricks your InteractiveChair.jsx and Sofa into functioning smoothly!
       if (hasTouch) {
         try {
           Object.defineProperty(document, 'pointerLockElement', {
@@ -406,11 +402,10 @@ export default function App() {
     if (oldHint) oldHint.style.display = 'none'
 
     const onChange = () => {
-      // Safely ignore the mock pointer lock so Desktop behaves normally
       if (!('ontouchstart' in window)) {
         setIsLocked(!!document.pointerLockElement)
       } else {
-        setIsLocked(true) // Always treat mobile as "locked in"
+        setIsLocked(true) 
       }
     }
     document.addEventListener('pointerlockchange', onChange)
@@ -465,25 +460,30 @@ export default function App() {
         <MobileGamepad playerState={playerState} />
       )}
       
+      {/* 🚨 FIX: Mobile-Responsive Gallery Overlay! */}
       {isGalleryOpen && (!isLocked || isTouchDevice) && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(5, 4, 3, 0.97)', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h2 style={{ color: '#ffb703', fontFamily: '"Sarpanch", monospace', fontSize: '2.5rem', marginBottom: '40px', letterSpacing: '2px' }}>ARCHIVED MEMORIES</h2>
+          <h2 style={{ color: '#ffb703', fontFamily: '"Sarpanch", monospace', fontSize: '1.8rem', marginTop: '20px', marginBottom: '10px', letterSpacing: '2px', flexShrink: 0 }}>ARCHIVED MEMORIES</h2>
           
-          <div style={{ display: 'flex', gap: '40px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <div style={{ padding: '15px', backgroundColor: '#111', border: '1px solid #333', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
-              <img src="/india-today-intern.jpg" style={{ width: '300px', height: '400px', objectFit: 'cover' }} alt="Gallery 1" />
-            </div>
-            <div style={{ padding: '15px', backgroundColor: '#111', border: '1px solid #333', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
-              <img src="/moon-texture.jpg" style={{ width: '300px', height: '400px', objectFit: 'cover' }} alt="Gallery 2" />
-            </div>
-            <div style={{ padding: '15px', backgroundColor: '#111', border: '1px solid #333', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
-              <img src="/earth-texture.jpg" style={{ width: '300px', height: '400px', objectFit: 'cover' }} alt="Gallery 3" />
-            </div>
+          <div style={{ 
+            display: 'flex', gap: '20px', alignItems: 'center', overflowX: 'auto', 
+            width: '90vw', maxWidth: '1000px', padding: '10px 0', marginBottom: '20px',
+            scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' 
+          }}>
+            {[ '/india-today-intern.jpg', '/moon-texture.jpg', '/earth-texture.jpg' ].map((src, i) => (
+              <div key={i} style={{ 
+                flex: '0 0 auto', scrollSnapAlign: 'center', padding: '10px', 
+                backgroundColor: '#111', border: '1px solid #333', boxShadow: '0 10px 30px rgba(0,0,0,0.8)',
+                margin: 'auto'
+              }}>
+                <img src={src} style={{ width: 'auto', height: '55vh', minHeight: '200px', objectFit: 'contain' }} alt={`Gallery ${i}`} />
+              </div>
+            ))}
           </div>
 
           <button 
             onClick={() => setIsGalleryOpen(false)} 
-            style={{ marginTop: '60px', padding: '12px 30px', backgroundColor: 'transparent', color: '#ff2a5f', border: '2px solid #ff2a5f', fontFamily: 'monospace', fontSize: '1.2rem', cursor: 'pointer', transition: 'all 0.2s' }}
+            style={{ padding: '10px 30px', backgroundColor: 'transparent', color: '#ff2a5f', border: '2px solid #ff2a5f', fontFamily: 'monospace', fontSize: '1.2rem', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0, marginBottom: '20px' }}
             onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 42, 95, 0.1)'}
             onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
           >
