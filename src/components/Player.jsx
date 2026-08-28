@@ -132,10 +132,16 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize()
 
     const move = new THREE.Vector3()
+    
+    // Desktop Keyboard Math
     if (keys.current.w) move.add(forward)
     if (keys.current.s) move.sub(forward)
     if (keys.current.d) move.add(right)
     if (keys.current.a) move.sub(right)
+    
+    // Mobile Joystick Math (Dynamically scales speed based on how far you drag the stick)
+    if (playerState.moveVector.y !== 0) move.addScaledVector(forward, playerState.moveVector.y)
+    if (playerState.moveVector.x !== 0) move.addScaledVector(right, playerState.moveVector.x)
     
     const isMoving = move.lengthSq() > 0
     const currentSpeed = keys.current.shift ? CROUCH_SPEED : SPEED
@@ -197,32 +203,38 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     let nextAction = 'Idle'
     
+    // Calculate intent from either Keyboard OR Mobile Joystick
+    const isMovingForward = keys.current.w || playerState.moveVector.y > 0.1
+    const isMovingBackward = keys.current.s || playerState.moveVector.y < -0.1
+    const isMovingLeft = keys.current.a || playerState.moveVector.x < -0.1
+    const isMovingRight = keys.current.d || playerState.moveVector.x > 0.1
+    
     if (!grounded) {
       nextAction = 'jumpingcomplete' 
     } 
     else if (isAttackingRef.current && playerState.hasCrowbar) {
       nextAction = 'meleeattack' 
     }
-    else if (keys.current.shift) {
+    else if (keys.current.shift || playerState.isCrouching) {
       if (isMoving) {
-        if (keys.current.w) nextAction = 'crouching' 
-        else if (keys.current.s) nextAction = 'backcrouching' 
-        else if (keys.current.a) nextAction = 'leftcrouching' 
-        else if (keys.current.d) nextAction = 'rightcrouching'
+        if (isMovingForward) nextAction = 'crouching' 
+        else if (isMovingBackward) nextAction = 'backcrouching' 
+        else if (isMovingLeft) nextAction = 'leftcrouching' 
+        else if (isMovingRight) nextAction = 'rightcrouching'
       } else {
         nextAction = 'crouchidle' 
       }
     } 
     else if (isMoving) {
       if (playerState.hasCrowbar) {
-        if (keys.current.w) nextAction = 'walkforwardmelee'
-        else if (keys.current.s) nextAction = 'walkbackmelee' 
-        else if (keys.current.a) nextAction = 'walkleftmelee' 
-        else if (keys.current.d) nextAction = 'walkrightmelee' 
+        if (isMovingForward) nextAction = 'walkforwardmelee'
+        else if (isMovingBackward) nextAction = 'walkbackmelee' 
+        else if (isMovingLeft) nextAction = 'walkleftmelee' 
+        else if (isMovingRight) nextAction = 'walkrightmelee' 
       } else {
-        if (keys.current.w || keys.current.s) nextAction = 'Walk'
-        else if (keys.current.a) nextAction = 'leftstrafe' 
-        else if (keys.current.d) nextAction = 'rightwalking' 
+        if (isMovingForward || isMovingBackward) nextAction = 'Walk'
+        else if (isMovingLeft) nextAction = 'leftstrafe' 
+        else if (isMovingRight) nextAction = 'rightwalking' 
       }
     } else {
       nextAction = playerState.hasCrowbar ? 'standingidlemelee' : 'Idle'

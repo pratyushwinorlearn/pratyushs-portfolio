@@ -33,9 +33,12 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
   const [controlsReady, setControlsReady] = useState(false)
 
   useEffect(() => {
+    // Ensure camera rotation order is correct for FPS/TPS look controls
+    camera.rotation.order = 'YXZ'
+    
     const t = setTimeout(() => setControlsReady(true), CONTROLS_MOUNT_DELAY_MS)
     return () => clearTimeout(t)
-  }, [])
+  }, [camera])
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -62,7 +65,21 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
   }, [playerState])
 
   useFrame((_, delta) => {
-    // 1. Determine dynamic offsets based on player state
+    // 🚨 1. MOBILE TOUCH CAMERA LOGIC
+    // Reads the swipe distance from the gamepad and rotates the camera
+    if (playerState.touchLookDelta.x !== 0 || playerState.touchLookDelta.y !== 0) {
+      camera.rotation.y -= playerState.touchLookDelta.x
+      camera.rotation.x -= playerState.touchLookDelta.y
+      
+      // Clamp pitch so the player doesn't break their neck looking too far up/down
+      camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x))
+      
+      // Reset delta so it doesn't spin endlessly
+      playerState.touchLookDelta.x = 0
+      playerState.touchLookDelta.y = 0
+    }
+
+    // 2. Determine dynamic offsets based on player state
     let targetEyeOffset = STAND_EYE_OFFSET
     let targetTppDistance = TPP_DISTANCE
     let targetTppHeight = TPP_HEIGHT_OFFSET
@@ -79,7 +96,7 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
       targetEyeOffset = CROUCH_EYE_OFFSET
     }
 
-    // 2. Smoothly glide the eye level (🚨 Frame-rate independent fix)
+    // 3. Smoothly glide the eye level (Frame-rate independent fix)
     currentEyeOffset.current = THREE.MathUtils.lerp(
       currentEyeOffset.current,
       targetEyeOffset,
@@ -89,7 +106,7 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
     const headPos = playerState.position.clone()
     headPos.y += currentEyeOffset.current
 
-    // 3. First-Person Perspective Execution
+    // 4. First-Person Perspective Execution
     if (playerState.mode === 'fpp') {
       if (!isNaN(headPos.x) && !isNaN(headPos.y) && !isNaN(headPos.z)) {
         camera.position.copy(headPos)
@@ -98,7 +115,7 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
       return
     }
 
-    // 4. Third-Person Perspective Logic
+    // 5. Third-Person Perspective Logic
     const forward = new THREE.Vector3()
     camera.getWorldDirection(forward)
 
@@ -127,7 +144,6 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
       }
     }
 
-    // 🚨 FIX: Replaced hardcoded SPRING_SMOOTHING with delta-scaled exponential decay
     const nextDistance = THREE.MathUtils.lerp(
       currentDistance.current,
       allowedDistance,

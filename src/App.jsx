@@ -12,7 +12,7 @@ import InteractiveChair from './components/InteractiveChair'
 import InteractiveSofa from './components/InteractiveSofa'
 import UserCursor from './components/UserCursor.jsx' 
 import InteractiveCrowbar from './components/InteractiveCrowbar.jsx'
-import MobilePortfolio from './components/mobile-portfolio/MobilePortfolio.jsx'
+import MobileGamepad from './components/MobileGamepad.jsx' // 🚨 IMPORT THE GAMEPAD
 
 // --- RETRO TERMINAL BOOT LOADER ---
 function TerminalBootLoader({ setHasLoaded }) {
@@ -206,7 +206,6 @@ function RoomWall() {
       </points>
 
       <group position={[-2.55, 1.6, -4.4]} rotation={[0, Math.PI / 2, 0]}>
-        
         <group position={[-0.9, 0, 0]}>
           <mesh position={[0, 0, 0.015]}>
             <planeGeometry args={[0.6, 0.8]} />
@@ -239,7 +238,6 @@ function RoomWall() {
             <meshStandardMaterial color="#000000" />
           </mesh>
         </group>
-
       </group>
     </group>
   )
@@ -247,7 +245,6 @@ function RoomWall() {
 
 function LunarSurface() {
   const moonTexture = useTexture('/moon-texture.jpg')
-  
   moonTexture.wrapS = moonTexture.wrapT = THREE.MirroredRepeatWrapping
   moonTexture.repeat.set(30, 30)
 
@@ -302,8 +299,7 @@ function CreditsWhiteboard() {
   )
 }
 
-function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen }) {
-  
+function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTouchDevice }) {
   useEffect(() => {
     if (isUIOpen) {
       playerState.hasUsedTerminal = true;
@@ -316,7 +312,7 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen }) {
       
       if (key === 'i') {
         if (playerState.isSitting && playerState.mode === 'fpp') {
-          document.exitPointerLock() 
+          if (document.pointerLockElement) document.exitPointerLock() 
           setIsUIOpen(true) 
         }
       }
@@ -324,7 +320,7 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen }) {
       if (key === 'f') {
         const dist = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
         if (dist < 1.5 && !playerState.isSitting) {
-          document.exitPointerLock() 
+          if (document.pointerLockElement) document.exitPointerLock() 
           setIsGalleryOpen(true) 
         }
       }
@@ -342,9 +338,7 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen }) {
         const warning = document.getElementById('warning-message')
         if (warning) {
           warning.style.display = 'block'
-          
           if (window.movementWarningTimer) clearTimeout(window.movementWarningTimer)
-          
           window.movementWarningTimer = setTimeout(() => {
             warning.style.display = 'none'
           }, 2000)
@@ -356,58 +350,68 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen }) {
   }, [playerState, setIsUIOpen, setIsGalleryOpen])
 
   useFrame(() => {
+    const isGameActive = isTouchDevice || !!document.pointerLockElement
+
+    // 1. Terminal (OS) Logic
     const prompt = document.getElementById('interact-prompt')
-    if (prompt) {
-      // 🚨 FIX: Added `document.pointerLockElement` so it only shows when the game is unpaused!
-      if (playerState.isSitting && playerState.sitType === 'desk' && document.pointerLockElement) {
-        prompt.style.display = 'block'
-        if (playerState.mode === 'fpp') {
-          prompt.innerText = '[ I ] INTERACT WITH TERMINAL'
-        } else {
-          prompt.innerText = 'PRESS [ V ] TO ENTER FPP MODE TO INTERACT'
-        }
-      } else {
-        prompt.style.display = 'none' 
-      }
-    }
+    const mobileBtnOs = document.getElementById('mobile-btn-os')
+    const canUseTerminal = playerState.isSitting && playerState.sitType === 'desk' && isGameActive
+    
+    if (prompt) prompt.style.display = canUseTerminal ? 'block' : 'none'
+    if (prompt && canUseTerminal) prompt.innerText = playerState.mode === 'fpp' ? '[ I ] INTERACT WITH TERMINAL' : 'PRESS [ V ] TO ENTER FPP MODE TO INTERACT'
+    if (mobileBtnOs) mobileBtnOs.style.display = canUseTerminal ? 'flex' : 'none'
 
+    // 2. Gallery (F) Logic
     const galleryPrompt = document.getElementById('gallery-prompt')
-    if (galleryPrompt) {
-      const dist = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
-      if (dist < 1.5 && !playerState.isSitting && document.pointerLockElement) {
-        galleryPrompt.style.display = 'block'
-      } else {
-        galleryPrompt.style.display = 'none'
-      }
-    }
+    const mobileBtnF = document.getElementById('mobile-btn-f')
+    const distToGallery = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
+    const canViewGallery = distToGallery < 1.5 && !playerState.isSitting && isGameActive
 
+    if (galleryPrompt) galleryPrompt.style.display = canViewGallery ? 'block' : 'none'
+    if (mobileBtnF) mobileBtnF.style.display = canViewGallery ? 'flex' : 'none'
+
+    // 3. Multi-use Action (E) Logic
     const welcomeHint = document.getElementById('welcome-hint')
-    if (welcomeHint) {
-      if (playerState.isSitting) {
-        playerState.hasSatDown = true
+    const doorPrompt = document.getElementById('door-prompt')
+    const mobileBtnE = document.getElementById('mobile-btn-e')
+    
+    let showEButton = false
+    let showDoorText = false
+    let showWelcomeText = false
+
+    if (isGameActive) {
+      if (playerState.isSitting) playerState.hasSatDown = true
+
+      const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
+      if (doorDist < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
+        showDoorText = true
+        showEButton = true
       }
 
-      if (!playerState.hasSatDown && document.pointerLockElement) {
-        welcomeHint.style.display = 'block'
-        welcomeHint.innerText = 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
-      } 
-      else if (playerState.hasSatDown && playerState.hasUsedTerminal && !playerState.hasOpenedDoor && document.pointerLockElement) {
-        welcomeHint.style.display = 'block'
-        welcomeHint.innerText = 'OBJECTIVE: Go to the door and press [ E ] to open it.'
-      } 
-      else {
-        welcomeHint.style.display = 'none'
+      if (!playerState.hasSatDown) {
+        showWelcomeText = true
+        showEButton = true
+        if (welcomeHint) welcomeHint.innerText = 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
+      } else if (playerState.hasSatDown && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
+        showWelcomeText = true
+        if (welcomeHint) welcomeHint.innerText = 'OBJECTIVE: Go to the door and press [ E ] to open it.'
       }
+
+      // Allow E to stand up if currently sitting
+      if (playerState.isSitting) showEButton = true
     }
 
+    if (welcomeHint) welcomeHint.style.display = showWelcomeText ? 'block' : 'none'
+    if (doorPrompt) doorPrompt.style.display = showDoorText ? 'block' : 'none'
+    if (mobileBtnE) mobileBtnE.style.display = showEButton ? 'flex' : 'none'
+
+    // 4. Drop (G) Logic
     const dropPrompt = document.getElementById('drop-prompt')
-    if (dropPrompt) {
-      if (playerState.hasCrowbar && document.pointerLockElement) {
-        dropPrompt.style.display = 'block'
-      } else {
-        dropPrompt.style.display = 'none'
-      }
-    }
+    const mobileBtnDrop = document.getElementById('mobile-btn-drop')
+    const canDrop = playerState.hasCrowbar && isGameActive
+    
+    if (dropPrompt) dropPrompt.style.display = canDrop ? 'block' : 'none'
+    if (mobileBtnDrop) mobileBtnDrop.style.display = canDrop ? 'flex' : 'none'
   })
 
   return null
@@ -425,27 +429,18 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
           rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
           rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true)
         }
-      } catch (e) {
-        // Safe catch
-      }
+      } catch (e) {}
     }
   })
   return null
 }
 
 export default function App() {
-  const [isMobileOrTablet, setIsMobileOrTablet] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false) 
-
-  useEffect(() => {
-    const checkDevice = () => {
-      setIsMobileOrTablet(window.innerWidth <= 1024)
-    }
-    
-    checkDevice() 
-    window.addEventListener('resize', checkDevice)
-    return () => window.removeEventListener('resize', checkDevice)
-  }, [])
+  
+  // 🚨 NEW: Mobile touch & orientation states
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [isPortrait, setIsPortrait] = useState(false)
 
   const playerState = useRef(createPlayerState()).current
   const rigidBodyRef = useRef(null)
@@ -455,6 +450,23 @@ export default function App() {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false) 
   const [isLocked, setIsLocked] = useState(false)
   const [showCameraHint, setShowCameraHint] = useState(false)
+
+  // 🚨 NEW: Detect mobile users & screen orientation instantly
+  useEffect(() => {
+    const checkTouchAndOrientation = () => {
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+      setIsTouchDevice(hasTouch)
+      setIsPortrait(window.innerHeight > window.innerWidth)
+    }
+    
+    checkTouchAndOrientation() 
+    window.addEventListener('resize', checkTouchAndOrientation)
+    window.addEventListener('orientationchange', checkTouchAndOrientation)
+    return () => {
+      window.removeEventListener('resize', checkTouchAndOrientation)
+      window.removeEventListener('orientationchange', checkTouchAndOrientation)
+    }
+  }, [])
 
   useEffect(() => {
     const oldHint = document.getElementById('hint')
@@ -471,47 +483,38 @@ export default function App() {
     let timer;
     if (isUIOpen && !isLocked) {
       setShowCameraHint(true) 
-      timer = setTimeout(() => {
-        setShowCameraHint(false) 
-      }, 10000)
+      timer = setTimeout(() => setShowCameraHint(false), 10000)
     } else {
       setShowCameraHint(false) 
     }
-
     return () => clearTimeout(timer)
   }, [isUIOpen, isLocked])
 
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === 'Escape') {
-        setIsGalleryOpen(false)
-      }
+      if (e.key === 'Escape') setIsGalleryOpen(false)
     }
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
   }, [])
 
-  if (isMobileOrTablet) {
-    return <MobilePortfolio />
+  // 🚨 NEW: Enforce Landscape Mode for Mobile Users
+  if (isTouchDevice && isPortrait && hasLoaded) {
+    return (
+      <div style={{ width: '100vw', height: '100vh', backgroundColor: '#050403', color: '#ffb703', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"Sarpanch", monospace', textAlign: 'center', padding: '20px' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '20px', animation: 'pulse 2s infinite' }}>🔄</div>
+        <h2>PLEASE ROTATE YOUR DEVICE</h2>
+        <p style={{ color: '#888', marginTop: '10px' }}>Turn your phone horizontal to activate the 3D base.</p>
+        <style>{`@keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }`}</style>
+      </div>
+    )
   }
 
   const cleanPromptStyle = {
-    position: 'absolute', 
-    bottom: '15%', 
-    left: '50%', 
-    transform: 'translateX(-50%)', 
-    color: '#ffffff', 
-    fontFamily: 'sans-serif', 
-    fontWeight: 'bold',
-    fontSize: '1.2rem', 
-    backgroundColor: 'rgba(0,0,0,0.85)', 
-    padding: '10px 24px', 
-    border: '2px solid #ffffff', 
-    borderRadius: '8px', 
-    display: 'none', 
-    zIndex: 100, 
-    pointerEvents: 'none',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.5)'
+    position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)', color: '#ffffff', 
+    fontFamily: 'sans-serif', fontWeight: 'bold', fontSize: '1.2rem', backgroundColor: 'rgba(0,0,0,0.85)', 
+    padding: '10px 24px', border: '2px solid #ffffff', borderRadius: '8px', display: 'none', zIndex: 100, 
+    pointerEvents: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.5)'
   }
 
   return (
@@ -520,12 +523,17 @@ export default function App() {
       {!hasLoaded && (
         <TerminalBootLoader setHasLoaded={setHasLoaded} />
       )}
+
+      {/* 🚨 NEW: Render Mobile Gamepad overlay on Landscape Touch Devices */}
+      {isTouchDevice && !isPortrait && hasLoaded && !isUIOpen && !isGalleryOpen && (
+        <MobileGamepad playerState={playerState} setIsUIOpen={setIsUIOpen} setIsGalleryOpen={setIsGalleryOpen} />
+      )}
       
       {isGalleryOpen && !isLocked && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(5, 4, 3, 0.97)', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <h2 style={{ color: '#ffb703', fontFamily: '"Sarpanch", monospace', fontSize: '2.5rem', marginBottom: '40px', letterSpacing: '2px' }}>ARCHIVED MEMORIES</h2>
           
-          <div style={{ display: 'flex', gap: '40px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '40px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
             <div style={{ padding: '15px', backgroundColor: '#111', border: '1px solid #333', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
               <img src="/india-today-intern.jpg" style={{ width: '300px', height: '400px', objectFit: 'cover' }} alt="Gallery 1" />
             </div>
@@ -548,20 +556,20 @@ export default function App() {
         </div>
       )}
 
-      {(isUIOpen || isGalleryOpen) && !isLocked && (
+      {isUIOpen && !isLocked && !isTouchDevice && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
           <UserCursor name="Pratyush" color="#890808" size={28} />
         </div>
       )}
 
-      {isUIOpen && !isLocked && showCameraHint && (
+      {isUIOpen && !isLocked && !isTouchDevice && showCameraHint && (
         <div style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', color: '#ff2a5f', fontFamily: 'monospace', fontSize: '1rem', backgroundColor: 'rgba(0,0,0,0.85)', padding: '10px 20px', border: '1px solid #ff2a5f', borderRadius: '4px', zIndex: 100, pointerEvents: 'none', boxShadow: '0 0 10px rgba(255, 42, 95, 0.3)', animation: 'pulse 2s infinite', textAlign: 'center' }}>
           Click outside the screen to move the camera <br/>
           <span style={{ fontSize: '0.85rem', color: '#888' }}>Press [ ESC ] anytime to unlock cursor</span>
         </div>
       )}
 
-      {(isUIOpen || isGalleryOpen) && isLocked && (
+      {(isUIOpen || isGalleryOpen) && isLocked && !isTouchDevice && (
         <div style={{ position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)', color: '#00ffcc', fontFamily: 'monospace', fontSize: '1.2rem', backgroundColor: 'rgba(0,0,0,0.85)', padding: '10px 20px', border: '1px solid #00ffcc', borderRadius: '4px', zIndex: 100, pointerEvents: 'none', boxShadow: '0 0 10px rgba(0, 255, 204, 0.3)', animation: 'pulse 1.5s infinite' }}>
           PRESS [ ESC ] TO UNLOCK CURSOR
         </div>
@@ -591,13 +599,14 @@ export default function App() {
         [ G ] DROP CROWBAR
       </div>
 
-      {isLocked && !isUIOpen && !isGalleryOpen && (
+      {isLocked && !isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div style={{ position: 'absolute', bottom: '20px', right: '20px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'monospace', fontSize: '0.85rem', zIndex: 50, pointerEvents: 'none' }}>
           [ ESC ] Controls Menu
         </div>
       )}
 
-      {!isLocked && !isUIOpen && !isGalleryOpen && hasLoaded && (
+      {/* 🚨 FIX: Ensure Desktop SYSTEM CONTROLS pause menu is fully hidden on mobile devices */}
+      {!isTouchDevice && !isLocked && !isUIOpen && !isGalleryOpen && hasLoaded && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.85)', zIndex: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'monospace', pointerEvents: 'none' }}>
           <h2 style={{ color: '#00ffcc', letterSpacing: '2px', marginBottom: '40px', fontSize: '2rem' }}>SYSTEM CONTROLS</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px 40px', textTransform: 'uppercase', fontSize: '1.1rem' }}>
@@ -612,7 +621,6 @@ export default function App() {
             <div style={{ textAlign: 'right', color: '#888' }}>[ ESC ]</div><div>Pause / Release Mouse</div>
           </div>
           <div style={{ marginTop: '60px', color: '#ff2a5f', fontSize: '1.2rem', animation: 'pulse 1.5s infinite' }}>CLICK ANYWHERE TO RESUME</div>
-          <style>{`@keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }`}</style>
         </div>
       )}
 
@@ -622,7 +630,8 @@ export default function App() {
         <Suspense fallback={null}>
           <Environment preset="city" />
 
-          <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} setIsGalleryOpen={setIsGalleryOpen} isUIOpen={isUIOpen} />
+          {/* 🚨 Pass isTouchDevice down to UIManager */}
+          <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} setIsGalleryOpen={setIsGalleryOpen} isUIOpen={isUIOpen} isTouchDevice={isTouchDevice} />
           
           <SkyboxModel />
           <Earth />
@@ -634,7 +643,8 @@ export default function App() {
           <pointLight position={[0, 2.6, 0]} intensity={2} />
           <directionalLight position={[100, 50, 50]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
 
-          <Physics gravity={[0, -9.81, 0]} paused={isUIOpen || isGalleryOpen}>
+          {/* On mobile, physics is paused ONLY if UI or Gallery is open. No pointerLock dependency. */}
+          <Physics gravity={[0, -9.81, 0]} paused={isUIOpen || isGalleryOpen || (!isLocked && !isTouchDevice)}>
             
             <LunarSurface />
             <RoomWall />
