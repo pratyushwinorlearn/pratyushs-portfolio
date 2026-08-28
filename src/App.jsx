@@ -308,13 +308,11 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
     }
 
     const welcomeHint = document.getElementById('welcome-hint')
-    const doorPrompt = document.getElementById('door-prompt')
     const dropPrompt = document.getElementById('drop-prompt')
     
     const mobileBtnAction = document.getElementById('mobile-btn-action')
     const mobileBtnDrop = document.getElementById('mobile-btn-drop')
 
-    let showDoorText = false
     let showWelcomeText = false
     let canDrop = false
 
@@ -336,11 +334,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
         showMobileAction = true; actionKey = 'f'; actionLabel = 'VIEW'; actionColor = '#ffb703';
       } 
 
-      const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
-      if (doorDist < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
-        showDoorText = true;
-      }
-
       if (!playerState.hasSatDown) {
         showWelcomeText = true
         if (welcomeHint) welcomeHint.innerText = isTouchDevice ? 'OBJECTIVE: Approach the main desk and tap [ E ] to sit.' : 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
@@ -351,7 +344,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
     }
 
     if (welcomeHint) welcomeHint.style.display = showWelcomeText ? 'block' : 'none'
-    if (doorPrompt) doorPrompt.style.display = (showDoorText && !isTouchDevice) ? 'block' : 'none'
     if (dropPrompt) dropPrompt.style.display = (canDrop && !isTouchDevice) ? 'block' : 'none'
 
     if (mobileBtnDrop) mobileBtnDrop.style.display = canDrop ? 'flex' : 'none'
@@ -563,14 +555,12 @@ export default function App() {
         </div>
       )}
       
-      {/* 🚨 ALWAYS SHOW OS/TERMINAL PROMPT (Even on mobile) */}
       {!isUIOpen && !isGalleryOpen && (
         <div id="interact-prompt" style={cleanPromptStyle}>
           [ I ] INTERACT WITH TERMINAL
         </div>
       )}
 
-      {/* Gallery prompt is PC only */}
       {!isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div id="gallery-prompt" style={cleanPromptStyle}>
           [ F ] VIEW GALLERY
@@ -584,12 +574,6 @@ export default function App() {
       <div id="warning-message" style={{ ...cleanPromptStyle, top: '20%', bottom: 'auto', color: '#ff4444', borderColor: '#ff4444' }}>
         {isTouchDevice ? 'TAP [ E ] TO STAND UP FIRST' : 'PRESS [ E ] TO STAND UP FIRST'}
       </div>
-
-      {!isTouchDevice && (
-        <div id="door-prompt" style={cleanPromptStyle}>
-          [ E ] OPEN DOOR
-        </div>
-      )}
 
       {!isTouchDevice && (
         <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
