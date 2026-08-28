@@ -267,15 +267,25 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
   useFrame(() => {
     const isGameActive = isTouchDevice || !!document.pointerLockElement
 
+    // 🚨 FIX: Restored text prompts for mobile by checking `isTouchDevice` dynamically
     const prompt = document.getElementById('interact-prompt')
     const canUseTerminal = playerState.isSitting && playerState.sitType === 'desk' && isGameActive
-    if (prompt) prompt.style.display = canUseTerminal ? 'block' : 'none'
-    if (prompt && canUseTerminal) prompt.innerText = playerState.mode === 'fpp' ? '[ I ] INTERACT WITH TERMINAL' : 'PRESS [ V ] TO ENTER FPP MODE TO INTERACT'
+    if (prompt) {
+      prompt.style.display = canUseTerminal ? 'block' : 'none'
+      if (canUseTerminal) {
+        prompt.innerText = playerState.mode === 'fpp' 
+          ? (isTouchDevice ? 'TAP [ OS ] TO INTERACT' : '[ I ] INTERACT WITH TERMINAL') 
+          : (isTouchDevice ? 'TAP [ V ] TO ENTER FPP MODE' : 'PRESS [ V ] TO ENTER FPP MODE TO INTERACT')
+      }
+    }
 
     const galleryPrompt = document.getElementById('gallery-prompt')
     const distToGallery = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
     const canViewGallery = distToGallery < 1.5 && !playerState.isSitting && isGameActive
-    if (galleryPrompt) galleryPrompt.style.display = canViewGallery ? 'block' : 'none'
+    if (galleryPrompt) {
+      galleryPrompt.style.display = canViewGallery ? 'block' : 'none'
+      if (canViewGallery && isTouchDevice) galleryPrompt.innerText = '[ VIEW ] GALLERY'
+    }
 
     const welcomeHint = document.getElementById('welcome-hint')
     const doorPrompt = document.getElementById('door-prompt')
@@ -298,7 +308,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
 
       canDrop = playerState.hasCrowbar
 
-      // 🚨 FIX: E is permanent on mobile, so the dynamic button only shows OS or VIEW
       if (playerState.isSitting && playerState.sitType === 'desk') {
         showMobileAction = true; actionKey = 'i'; actionLabel = 'OS'; actionColor = '#ff2a5f';
       } else if (distToGallery < 1.5 && !playerState.isSitting) {
@@ -312,10 +321,10 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
 
       if (!playerState.hasSatDown) {
         showWelcomeText = true
-        if (welcomeHint) welcomeHint.innerText = 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
+        if (welcomeHint) welcomeHint.innerText = isTouchDevice ? 'OBJECTIVE: Approach the main desk and tap [ E ] to sit.' : 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
       } else if (playerState.hasSatDown && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
         showWelcomeText = true
-        if (welcomeHint) welcomeHint.innerText = 'OBJECTIVE: Go to the door and press [ E ] to open it.'
+        if (welcomeHint) welcomeHint.innerText = isTouchDevice ? 'OBJECTIVE: Go to the door and tap [ E ] to open it.' : 'OBJECTIVE: Go to the door and press [ E ] to open it.'
       }
     }
 
@@ -460,7 +469,6 @@ export default function App() {
         <MobileGamepad playerState={playerState} />
       )}
       
-      {/* 🚨 FIX: Mobile-Responsive Gallery Overlay! */}
       {isGalleryOpen && (!isLocked || isTouchDevice) && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(5, 4, 3, 0.97)', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <h2 style={{ color: '#ffb703', fontFamily: '"Sarpanch", monospace', fontSize: '1.8rem', marginTop: '20px', marginBottom: '10px', letterSpacing: '2px', flexShrink: 0 }}>ARCHIVED MEMORIES</h2>
@@ -511,13 +519,14 @@ export default function App() {
         </div>
       )}
       
-      {!isUIOpen && !isGalleryOpen && !isTouchDevice && (
+      {/* 🚨 FIX: Removed `!isTouchDevice` so visual prompts show on mobile again */}
+      {!isUIOpen && !isGalleryOpen && (
         <div id="interact-prompt" style={cleanPromptStyle}>
           [ I ] INTERACT WITH TERMINAL
         </div>
       )}
 
-      {!isUIOpen && !isGalleryOpen && !isTouchDevice && (
+      {!isUIOpen && !isGalleryOpen && (
         <div id="gallery-prompt" style={cleanPromptStyle}>
           [ F ] VIEW GALLERY
         </div>
@@ -531,17 +540,13 @@ export default function App() {
         PRESS [ E ] TO STAND UP FIRST
       </div>
 
-      {!isTouchDevice && (
-        <div id="door-prompt" style={cleanPromptStyle}>
-          [ E ] OPEN DOOR
-        </div>
-      )}
+      <div id="door-prompt" style={cleanPromptStyle}>
+        [ E ] OPEN DOOR
+      </div>
 
-      {!isTouchDevice && (
-        <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
-          [ G ] DROP CROWBAR
-        </div>
-      )}
+      <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
+        [ G ] DROP CROWBAR
+      </div>
 
       {isLocked && !isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div style={{ position: 'absolute', bottom: '20px', right: '20px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'monospace', fontSize: '0.85rem', zIndex: 50, pointerEvents: 'none' }}>

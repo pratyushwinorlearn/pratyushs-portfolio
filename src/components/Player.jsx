@@ -7,7 +7,7 @@ import CharacterMesh from './CharacterMesh'
 
 const SPEED = 1.6 
 const CROUCH_SPEED = 0.8 
-const JUMP_FORCE = 2.5 
+const JUMP_FORCE = 4.0 // 🚨 FIX: Increased from 2.5 so indoor jump animation has time to play
 const GRAVITY = -15.0 
 const CAPSULE_HALF_HEIGHT = 0.55 
 const CAPSULE_RADIUS = 0.35
@@ -128,13 +128,11 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     const move = new THREE.Vector3()
     
-    // 🚨 Desktop Keyboard Math
     if (keys.current.w) move.add(forward)
     if (keys.current.s) move.sub(forward)
     if (keys.current.d) move.add(right)
     if (keys.current.a) move.sub(right)
     
-    // 🚨 Mobile Joystick Math with Anti-Crash Fallbacks
     const joyY = playerState.moveVector?.y || 0
     const joyX = playerState.moveVector?.x || 0
 
@@ -154,7 +152,9 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     const isOutside = pos.z > -1.5 || pos.x > 4.5 || pos.x < -3.0 || pos.z < -6.5
     
     const activeGravity = isOutside ? (GRAVITY / 6) : GRAVITY
-    const activeJumpForce = isOutside ? (JUMP_FORCE * 1.8) : JUMP_FORCE
+    
+    // 🚨 Modified so moon jump isn't completely broken by the new higher JUMP_FORCE
+    const activeJumpForce = isOutside ? (JUMP_FORCE * 1.3) : JUMP_FORCE
 
     if (grounded) {
       if (keys.current.space) verticalVelocity.current = activeJumpForce
@@ -196,7 +196,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     let nextAction = 'Idle'
     
-    // 🚨 FIX: Calculate animation intent from BOTH Keyboard AND Mobile Joystick
     const isMovingForward = keys.current.w || joyY > 0.1
     const isMovingBackward = keys.current.s || joyY < -0.1
     const isMovingLeft = keys.current.a || joyX < -0.1

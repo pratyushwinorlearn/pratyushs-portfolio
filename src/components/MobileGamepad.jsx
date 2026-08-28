@@ -5,7 +5,6 @@ export default function MobileGamepad({ playerState }) {
   const joystickBaseRef = useRef(null)
   const touchIdRef = useRef(null)
 
-  // --- JOYSTICK LOGIC ---
   const handleJoystickTouchStart = (e) => {
     const touch = e.changedTouches[0]
     touchIdRef.current = touch.identifier
@@ -45,7 +44,6 @@ export default function MobileGamepad({ playerState }) {
     }
   }
 
-  // --- CAMERA LOOK LOGIC ---
   const cameraTouchId = useRef(null)
   const lastTouchPos = useRef({ x: 0, y: 0 })
 
@@ -74,7 +72,6 @@ export default function MobileGamepad({ playerState }) {
     playerState.touchLookDelta.y = 0
   }
 
-  // --- HARDWARE KEY SIMULATOR ---
   const triggerKey = (keyStr) => {
     const codeStr = keyStr === ' ' ? 'Space' : keyStr === 'ShiftLeft' ? 'ShiftLeft' : `Key${keyStr.toUpperCase()}`;
     const event = new KeyboardEvent('keydown', { key: keyStr, code: codeStr, keyCode: keyStr === ' ' ? 32 : keyStr.toUpperCase().charCodeAt(0), bubbles: true, cancelable: true, composed: true });
@@ -95,13 +92,11 @@ export default function MobileGamepad({ playerState }) {
 
   return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1000, overflow: 'hidden' }}>
-      {/* Invisible Camera Swipe Zone */}
       <div 
         style={{ position: 'absolute', top: 0, right: 0, width: '60%', height: '100%', pointerEvents: 'auto', touchAction: 'none' }}
         onTouchStart={handleCameraTouchStart} onTouchMove={handleCameraTouchMove} onTouchEnd={handleCameraTouchEnd}
       />
 
-      {/* Joystick Zone */}
       <div 
         ref={joystickBaseRef}
         style={{ position: 'absolute', bottom: '40px', left: '40px', width: '100px', height: '100px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', pointerEvents: 'auto', touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -110,7 +105,6 @@ export default function MobileGamepad({ playerState }) {
         <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#ffb703', transform: `translate(${stickPos.x}px, ${stickPos.y}px)`, boxShadow: '0 0 10px rgba(255,183,3,0.8)' }} />
       </div>
 
-      {/* 🚨 UPDATED: PERMANENT CORE ACTION BUTTONS (Right Thumb) */}
       <div style={{ position: 'absolute', bottom: '20px', right: '20px', display: 'flex', gap: '15px', alignItems: 'flex-end', pointerEvents: 'auto' }}>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
@@ -124,21 +118,21 @@ export default function MobileGamepad({ playerState }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
-          {/* E is now PERMANENT - Handles Doors, Sitting, Standing, and Pickups naturally! */}
           <button 
             style={{ ...btnBase, width: '60px', height: '60px', fontSize: '1.2rem', borderColor: '#00ffcc', color: '#00ffcc', boxShadow: '0 0 10px rgba(0,255,204,0.4)' }} 
             onTouchStart={(e) => { e.preventDefault(); triggerKey('e') }}
           >E</button>
           
+          {/* 🚨 FIX: Added onTouchEnd to release the jump key! */}
           <button 
             style={{ ...btnBase, width: '70px', height: '70px', fontSize: '0.9rem', borderColor: 'rgba(255,255,255,0.6)' }} 
             onTouchStart={(e) => { e.preventDefault(); triggerKey(' ') }}
+            onTouchEnd={(e) => { e.preventDefault(); triggerKeyUp(' ') }}
           >JUMP</button>
         </div>
 
       </div>
 
-      {/* DYNAMIC CONTEXTUAL BUTTONS (Handled by UIManager) */}
       <div style={{ position: 'absolute', bottom: '120px', right: '180px', display: 'flex', gap: '15px', pointerEvents: 'auto' }}>
         <button 
           id="mobile-btn-drop" 
