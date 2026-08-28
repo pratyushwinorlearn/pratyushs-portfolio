@@ -4,7 +4,6 @@ import { PointerLockControls } from '@react-three/drei'
 import { useRapier } from '@react-three/rapier'
 import * as THREE from 'three'
 
-// --- TUNING KNOBS ---
 const STAND_EYE_OFFSET = 0.8
 const CROUCH_EYE_OFFSET = -0.15
 const SIT_EYE_OFFSET = 0.5
@@ -12,7 +11,6 @@ const SIT_EYE_OFFSET = 0.5
 const SOFA_EYE_OFFSET = -0.6
 const TRANSITION_SPEED = 10.0
 
-// --- TPP CAMERA SETTINGS ---
 const TPP_DISTANCE = 1.5
 const TPP_HEIGHT_OFFSET = 0.30
 
@@ -31,11 +29,12 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
   const currentEyeOffset = useRef(STAND_EYE_OFFSET)
 
   const [controlsReady, setControlsReady] = useState(false)
+  
+  // 🚨 NEW: Detect mobile device to disable PointerLock
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
 
   useEffect(() => {
-    // Ensure camera rotation order is correct for FPS/TPS look controls
     camera.rotation.order = 'YXZ'
-    
     const t = setTimeout(() => setControlsReady(true), CONTROLS_MOUNT_DELAY_MS)
     return () => clearTimeout(t)
   }, [camera])
@@ -65,21 +64,22 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
   }, [playerState])
 
   useFrame((_, delta) => {
-    // 🚨 1. MOBILE TOUCH CAMERA LOGIC
-    // Reads the swipe distance from the gamepad and rotates the camera
-    if (playerState.touchLookDelta.x !== 0 || playerState.touchLookDelta.y !== 0) {
-      camera.rotation.y -= playerState.touchLookDelta.x
-      camera.rotation.x -= playerState.touchLookDelta.y
+    // 🚨 Mobile Touch Look Math with Anti-Crash Fallbacks
+    const deltaX = playerState.touchLookDelta?.x || 0
+    const deltaY = playerState.touchLookDelta?.y || 0
+
+    if (deltaX !== 0 || deltaY !== 0) {
+      camera.rotation.y -= deltaX
+      camera.rotation.x -= deltaY
       
-      // Clamp pitch so the player doesn't break their neck looking too far up/down
       camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x))
       
-      // Reset delta so it doesn't spin endlessly
-      playerState.touchLookDelta.x = 0
-      playerState.touchLookDelta.y = 0
+      if (playerState.touchLookDelta) {
+        playerState.touchLookDelta.x = 0
+        playerState.touchLookDelta.y = 0
+      }
     }
 
-    // 2. Determine dynamic offsets based on player state
     let targetEyeOffset = STAND_EYE_OFFSET
     let targetTppDistance = TPP_DISTANCE
     let targetTppHeight = TPP_HEIGHT_OFFSET
@@ -92,11 +92,10 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
       } else {
         targetEyeOffset = SIT_EYE_OFFSET
       }
-    } else if (isCrouching.current) {
+    } else if (isCrouching.current || playerState.isCrouching) {
       targetEyeOffset = CROUCH_EYE_OFFSET
     }
 
-    // 3. Smoothly glide the eye level (Frame-rate independent fix)
     currentEyeOffset.current = THREE.MathUtils.lerp(
       currentEyeOffset.current,
       targetEyeOffset,
@@ -106,7 +105,6 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
     const headPos = playerState.position.clone()
     headPos.y += currentEyeOffset.current
 
-    // 4. First-Person Perspective Execution
     if (playerState.mode === 'fpp') {
       if (!isNaN(headPos.x) && !isNaN(headPos.y) && !isNaN(headPos.z)) {
         camera.position.copy(headPos)
@@ -115,7 +113,6 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
       return
     }
 
-    // 5. Third-Person Perspective Logic
     const forward = new THREE.Vector3()
     camera.getWorldDirection(forward)
 
@@ -139,9 +136,7 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
         if (hit && hit.toi != null && !isNaN(hit.toi)) {
           allowedDistance = Math.max(TPP_MIN_DISTANCE, hit.toi - 0.15)
         }
-      } catch (err) {
-        // Safe unmount catch
-      }
+      } catch (err) {}
     }
 
     const nextDistance = THREE.MathUtils.lerp(
@@ -165,5 +160,6 @@ export default function CameraRig({ playerState, rigidBodyRef }) {
     }
   })
 
-  return controlsReady ? <PointerLockControls /> : null
+  // 🚨 FIX: Ensure PointerLock is NEVER mounted on touch devices!
+  return controlsReady && !isTouchDevice ? <PointerLockControls /> : null
 }

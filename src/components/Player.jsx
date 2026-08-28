@@ -33,7 +33,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
   const attackTimeRef = useRef(0)
   
   const spawnGraceTimer = useRef(0)
-  
   const wasSitting = useRef(false)
   const standUpGraceTimer = useRef(0)
 
@@ -61,10 +60,7 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
       if (code === 'ShiftLeft' || code === 'ShiftRight') keys.current.shift = value
     }
 
-    const down = (e) => {
-      setKey(e.code, true)
-    }
-    
+    const down = (e) => setKey(e.code, true)
     const up = (e) => setKey(e.code, false)
 
     const handleMouseDown = (e) => {
@@ -115,7 +111,6 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     if (standUpGraceTimer.current > 0) {
       standUpGraceTimer.current -= delta;
-      
       const pos = rb.translation();
       virtualPos.current.set(pos.x, pos.y, pos.z);
       lastPhysicsPos.current.set(pos.x, pos.y, pos.z);
@@ -139,12 +134,15 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     if (keys.current.d) move.add(right)
     if (keys.current.a) move.sub(right)
     
-    // 🚨 Mobile Joystick Math
-    if (playerState.moveVector.y !== 0) move.addScaledVector(forward, playerState.moveVector.y)
-    if (playerState.moveVector.x !== 0) move.addScaledVector(right, playerState.moveVector.x)
+    // 🚨 Mobile Joystick Math with Anti-Crash Fallbacks
+    const joyY = playerState.moveVector?.y || 0
+    const joyX = playerState.moveVector?.x || 0
+
+    if (joyY !== 0) move.addScaledVector(forward, joyY)
+    if (joyX !== 0) move.addScaledVector(right, joyX)
     
     const isMoving = move.lengthSq() > 0
-    const currentSpeed = keys.current.shift ? CROUCH_SPEED : SPEED
+    const currentSpeed = (keys.current.shift || playerState.isCrouching) ? CROUCH_SPEED : SPEED
     if (isMoving) move.normalize().multiplyScalar(currentSpeed * delta)
 
     const grounded = controller.computedGrounded && controller.computedGrounded()
@@ -199,10 +197,10 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     let nextAction = 'Idle'
     
     // 🚨 FIX: Calculate animation intent from BOTH Keyboard AND Mobile Joystick
-    const isMovingForward = keys.current.w || playerState.moveVector.y > 0.1
-    const isMovingBackward = keys.current.s || playerState.moveVector.y < -0.1
-    const isMovingLeft = keys.current.a || playerState.moveVector.x < -0.1
-    const isMovingRight = keys.current.d || playerState.moveVector.x > 0.1
+    const isMovingForward = keys.current.w || joyY > 0.1
+    const isMovingBackward = keys.current.s || joyY < -0.1
+    const isMovingLeft = keys.current.a || joyX < -0.1
+    const isMovingRight = keys.current.d || joyX > 0.1
     
     if (!grounded) {
       nextAction = 'jumpingcomplete' 
@@ -248,7 +246,7 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
       if (showWeapon) {
         const headPos = playerState.position.clone()
-        headPos.y += keys.current.shift ? CROUCH_EYE_OFFSET : STAND_EYE_OFFSET
+        headPos.y += (keys.current.shift || playerState.isCrouching) ? CROUCH_EYE_OFFSET : STAND_EYE_OFFSET
         
         weaponContainerRef.current.position.copy(headPos)
         weaponContainerRef.current.quaternion.copy(camera.quaternion)
