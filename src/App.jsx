@@ -76,7 +76,6 @@ function TerminalBootLoader({ setHasLoaded, isTouchDevice }) {
         backgroundSize: '100% 4px', pointerEvents: 'none', zIndex: 10
       }} />
       
-      {/* 🚨 UNIQUE MOBILE UI: Centered Tactical Button once loaded */}
       {isReadyToStart && isTouchDevice ? (
         <div style={{ zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{
@@ -98,7 +97,6 @@ function TerminalBootLoader({ setHasLoaded, isTouchDevice }) {
           </div>
         </div>
       ) : (
-        /* STANDARD DESKTOP BOOT SEQUENCE (Also shows on mobile while loading) */
         <div style={{ width: '80%', maxWidth: '900px', zIndex: 20, textShadow: '0px 0px 6px rgba(255,183,3,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h1 style={{ fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '2px', lineHeight: '1.2' }}>
             Pratyush's Portfolio
@@ -121,7 +119,6 @@ function TerminalBootLoader({ setHasLoaded, isTouchDevice }) {
             </div>
           </div>
 
-          {/* PC start button */}
           {isReadyToStart && !isTouchDevice && (
             <div style={{ marginTop: '20px', padding: '15px 30px', border: '2px solid #ffb703', borderRadius: '8px', animation: 'pulse 1.5s infinite', backgroundColor: 'rgba(255,183,3,0.1)' }}>
               [ CLICK SCREEN TO START ]
@@ -311,13 +308,11 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
     }
 
     const welcomeHint = document.getElementById('welcome-hint')
-    const doorPrompt = document.getElementById('door-prompt')
     const dropPrompt = document.getElementById('drop-prompt')
     
     const mobileBtnAction = document.getElementById('mobile-btn-action')
     const mobileBtnDrop = document.getElementById('mobile-btn-drop')
 
-    let showDoorText = false
     let showWelcomeText = false
     let canDrop = false
 
@@ -341,20 +336,19 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
 
       const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
       if (doorDist < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
-        showDoorText = true;
+        showMobileAction = true; actionKey = 'e'; actionLabel = 'OPEN'; actionColor = '#00ffcc';
       }
 
       if (!playerState.hasSatDown) {
         showWelcomeText = true
-        if (welcomeHint) welcomeHint.innerText = isTouchDevice ? 'Approach the main desk and tap [ E ] to sit.' : 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
+        if (welcomeHint) welcomeHint.innerText = isTouchDevice ? 'OBJECTIVE: Approach the main desk and tap [ E ] to sit.' : 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
       } else if (playerState.hasSatDown && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
         showWelcomeText = true
-        if (welcomeHint) welcomeHint.innerText = isTouchDevice ? 'Go to the door and tap [ E ] to open it.' : 'OBJECTIVE: Go to the door and press [ E ] to open it.'
+        if (welcomeHint) welcomeHint.innerText = isTouchDevice ? 'OBJECTIVE: Go to the door and tap [ E ] to open it.' : 'OBJECTIVE: Go to the door and press [ E ] to open it.'
       }
     }
 
     if (welcomeHint) welcomeHint.style.display = showWelcomeText ? 'block' : 'none'
-    if (doorPrompt) doorPrompt.style.display = (showDoorText && !isTouchDevice) ? 'block' : 'none'
     if (dropPrompt) dropPrompt.style.display = (canDrop && !isTouchDevice) ? 'block' : 'none'
 
     if (mobileBtnDrop) mobileBtnDrop.style.display = canDrop ? 'flex' : 'none'
@@ -465,7 +459,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [])
 
-  // 🚨 UNIQUE MOBILE UI: Pure CSS Rotating Graphic to replace the ugly emojis
   if (isTouchDevice && isPortrait && hasLoaded) {
     return (
       <div style={{ width: '100vw', height: '100vh', backgroundColor: '#050403', color: '#00ffcc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"Sarpanch", monospace', textAlign: 'center', padding: '20px', overflow: 'hidden' }}>
@@ -567,7 +560,7 @@ export default function App() {
         </div>
       )}
       
-      {!isUIOpen && !isGalleryOpen && (
+      {!isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div id="interact-prompt" style={cleanPromptStyle}>
           [ I ] INTERACT WITH TERMINAL
         </div>
@@ -579,19 +572,21 @@ export default function App() {
         </div>
       )}
 
-      <div id="welcome-hint" style={{...cleanPromptStyle, display: 'none', borderColor: '#00ffcc', color: '#00ffcc', animation: 'pulse 2s infinite'}}>
+      <div id="welcome-hint" style={{
+        ...cleanPromptStyle, 
+        top: '10%', 
+        bottom: 'auto', 
+        display: 'none', 
+        borderColor: '#00ffcc', 
+        color: '#00ffcc', 
+        animation: 'pulse 2s infinite'
+      }}>
         OBJECTIVE: Approach the main desk and press [ E ] to sit.
       </div>
 
       <div id="warning-message" style={{ ...cleanPromptStyle, top: '20%', bottom: 'auto', color: '#ff4444', borderColor: '#ff4444' }}>
-        PRESS [ E ] TO STAND UP FIRST
+        {isTouchDevice ? 'TAP [ E ] TO STAND UP FIRST' : 'PRESS [ E ] TO STAND UP FIRST'}
       </div>
-
-      {!isTouchDevice && (
-        <div id="door-prompt" style={cleanPromptStyle}>
-          [ E ] OPEN DOOR
-        </div>
-      )}
 
       {!isTouchDevice && (
         <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
