@@ -6,7 +6,7 @@ import * as THREE from 'three'
 // in their own useFrame loops.
 export function createPlayerState() {
   return {
-    position: new THREE.Vector3(0, 1.2, 3),
+    position: new THREE.Vector3(0.6, 2, -4.2),
     mode: 'tpp', // 'fpp' | 'tpp' — toggled by CameraRig on keypress
   }
 }

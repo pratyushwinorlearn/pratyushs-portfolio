@@ -267,7 +267,7 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
         ref={rigidBodyRef}
         type="kinematicPosition"
         colliders={false}
-        position={[0.6, 2, -3.5]} 
+        position={[0.6, 2, -4.2]} 
         enabledRotations={[false, false, false]}
       >
         <CapsuleCollider ref={colliderRef} args={[CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS]} />
