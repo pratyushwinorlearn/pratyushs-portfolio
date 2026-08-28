@@ -45,20 +45,18 @@ function TerminalBootLoader({ setHasLoaded }) {
     }
   }, [progress])
 
-  // 🚨 NEW: Handles entering fullscreen on mobile upon user interaction
+  // 🚨 Handles native fullscreen API safely
   const handleStart = () => {
     if (isReadyToStart) {
-      // Request fullscreen for mobile devices
       if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
         if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen().catch((err) => console.log(err));
+          document.documentElement.requestFullscreen().catch(() => {});
         }
       }
       setHasLoaded(true)
     }
   }
 
-  // 🚨 UPDATED: Added onClick to capture user interaction for Fullscreen API
   return (
     <div 
       onClick={handleStart}
@@ -77,7 +75,7 @@ function TerminalBootLoader({ setHasLoaded }) {
         backgroundSize: '100% 4px', pointerEvents: 'none', zIndex: 10
       }} />
       
-      <div style={{ width: '80%', maxWidth: '900px', zIndex: 20, textShadow: '0px 0px 6px rgba(255,183,3,0.6)' }}>
+      <div style={{ width: '80%', maxWidth: '900px', zIndex: 20, textShadow: '0px 0px 6px rgba(255,183,3,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h1 style={{ fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '2px', lineHeight: '1.2' }}>
           Pratyush's Portfolio
         </h1>
@@ -86,18 +84,25 @@ function TerminalBootLoader({ setHasLoaded }) {
           (c) कॉपीराइट शेखर प्रत्युष
         </p>
         
-        <div style={{ minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', marginBottom: '40px', fontSize: '0.9rem', lineHeight: '1.5' }}>
+        <div style={{ width: '100%', minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', marginBottom: '40px', fontSize: '0.9rem', lineHeight: '1.5' }}>
           {bootLog.map((log, i) => (
             <div key={i} style={{ marginBottom: '8px' }}>{`> ${log}`}</div>
           ))}
           <div style={{ animation: 'blink 1s step-end infinite' }}>_</div>
         </div>
 
-        <div>
+        <div style={{ width: '100%' }}>
           <div style={{ marginBottom: '15px', fontSize: '1rem' }}>
             लोड हो रहा है: [{barString}] {Math.round(progress)}%
           </div>
         </div>
+
+        {/* 🚨 Make it obvious the user has to tap to enter fullscreen! */}
+        {isReadyToStart && (
+          <div style={{ marginTop: '20px', padding: '15px 30px', border: '2px solid #ffb703', borderRadius: '8px', animation: 'pulse 1.5s infinite', backgroundColor: 'rgba(255,183,3,0.1)' }}>
+            [ TAP SCREEN TO START ]
+          </div>
+        )}
       </div>
       
       <style>{`
@@ -198,65 +203,25 @@ function RoomWall() {
 
       <points ref={starsRef}>
         <bufferGeometry>
-          <bufferAttribute 
-            attach="attributes-position" 
-            count={starCount} 
-            array={starPositions} 
-            itemSize={3} 
-          />
-          <bufferAttribute 
-            attach="attributes-color" 
-            count={starCount} 
-            array={initialColors} 
-            itemSize={3} 
-          />
+          <bufferAttribute attach="attributes-position" count={starCount} array={starPositions} itemSize={3} />
+          <bufferAttribute attach="attributes-color" count={starCount} array={initialColors} itemSize={3} />
         </bufferGeometry>
-        <pointsMaterial 
-          size={0.015} 
-          map={circleTexture} 
-          vertexColors={true} 
-          transparent={true} 
-          alphaTest={0.01} 
-          sizeAttenuation={true} 
-          depthWrite={false}
-        />
+        <pointsMaterial size={0.015} map={circleTexture} vertexColors={true} transparent={true} alphaTest={0.01} sizeAttenuation={true} depthWrite={false} />
       </points>
 
       <group position={[-2.55, 1.6, -4.4]} rotation={[0, Math.PI / 2, 0]}>
-        
         <group position={[-0.9, 0, 0]}>
-          <mesh position={[0, 0, 0.015]}>
-            <planeGeometry args={[0.6, 0.8]} />
-            <meshStandardMaterial map={tex1} />
-          </mesh>
-          <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[0.7, 0.9, 0.02]} />
-            <meshStandardMaterial color="#000000" />
-          </mesh>
+          <mesh position={[0, 0, 0.015]}><planeGeometry args={[0.6, 0.8]} /><meshStandardMaterial map={tex1} /></mesh>
+          <mesh position={[0, 0, 0]}><boxGeometry args={[0.7, 0.9, 0.02]} /><meshStandardMaterial color="#000000" /></mesh>
         </group>
-
         <group position={[0, 0, 0]}>
-          <mesh position={[0, 0, 0.015]}>
-            <planeGeometry args={[0.6, 0.8]} />
-            <meshStandardMaterial map={tex2} />
-          </mesh>
-          <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[0.7, 0.9, 0.02]} />
-            <meshStandardMaterial color="#000000" />
-          </mesh>
+          <mesh position={[0, 0, 0.015]}><planeGeometry args={[0.6, 0.8]} /><meshStandardMaterial map={tex2} /></mesh>
+          <mesh position={[0, 0, 0]}><boxGeometry args={[0.7, 0.9, 0.02]} /><meshStandardMaterial color="#000000" /></mesh>
         </group>
-
         <group position={[0.9, 0, 0]}>
-          <mesh position={[0, 0, 0.015]}>
-            <planeGeometry args={[0.6, 0.8]} />
-            <meshStandardMaterial map={tex3} />
-          </mesh>
-          <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[0.7, 0.9, 0.02]} />
-            <meshStandardMaterial color="#000000" />
-          </mesh>
+          <mesh position={[0, 0, 0.015]}><planeGeometry args={[0.6, 0.8]} /><meshStandardMaterial map={tex3} /></mesh>
+          <mesh position={[0, 0, 0]}><boxGeometry args={[0.7, 0.9, 0.02]} /><meshStandardMaterial color="#000000" /></mesh>
         </group>
-
       </group>
     </group>
   )
@@ -264,7 +229,6 @@ function RoomWall() {
 
 function LunarSurface() {
   const moonTexture = useTexture('/moon-texture.jpg')
-  
   moonTexture.wrapS = moonTexture.wrapT = THREE.MirroredRepeatWrapping
   moonTexture.repeat.set(30, 30)
 
@@ -288,23 +252,8 @@ function CreditsWhiteboard() {
 
   return (
     <RigidBody type="fixed" colliders="hull">
-      <primitive 
-        object={scene} 
-        position={[-0.289, 1.805, -2.616]} 
-        rotation={[0, -0.3, 0]} 
-        scale={0.003} 
-      />
-      <Text
-        position={[-0.289, 1.805, -2.645]} 
-        rotation={[0, 3.15, 0]} 
-        fontSize={0.03} 
-        color="#030303" 
-        font="/fonts/PasseroOne-Regular.ttf" 
-        lineHeight={1.4}
-        textAlign="center"
-        anchorX="center"
-        anchorY="middle"
-      >
+      <primitive object={scene} position={[-0.289, 1.805, -2.616]} rotation={[0, -0.3, 0]} scale={0.003} />
+      <Text position={[-0.289, 1.805, -2.645]} rotation={[0, 3.15, 0]} fontSize={0.03} color="#030303" font="/fonts/PasseroOne-Regular.ttf" lineHeight={1.4} textAlign="center" anchorX="center" anchorY="middle">
         CREDITS{"\n\n"}
           3D ASSETS (Sketchfab):{"\n\n"}
           Control Room by amogusstrikesback2{"\n"}
@@ -372,30 +321,52 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
   useFrame(() => {
     const isGameActive = isTouchDevice || !!document.pointerLockElement
 
+    // 🚨 Desktop Text Prompts
     const prompt = document.getElementById('interact-prompt')
     const canUseTerminal = playerState.isSitting && playerState.sitType === 'desk' && isGameActive
-    
     if (prompt) prompt.style.display = canUseTerminal ? 'block' : 'none'
     if (prompt && canUseTerminal) prompt.innerText = playerState.mode === 'fpp' ? '[ I ] INTERACT WITH TERMINAL' : 'PRESS [ V ] TO ENTER FPP MODE TO INTERACT'
 
     const galleryPrompt = document.getElementById('gallery-prompt')
     const distToGallery = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
     const canViewGallery = distToGallery < 1.5 && !playerState.isSitting && isGameActive
-
     if (galleryPrompt) galleryPrompt.style.display = canViewGallery ? 'block' : 'none'
 
+    // 🚨 Contextual Logic for Desktop and Mobile
     const welcomeHint = document.getElementById('welcome-hint')
     const doorPrompt = document.getElementById('door-prompt')
+    const dropPrompt = document.getElementById('drop-prompt')
     
+    // 🚨 Mobile Action Button Injection
+    const mobileBtnAction = document.getElementById('mobile-btn-action')
+    const mobileBtnDrop = document.getElementById('mobile-btn-drop')
+
     let showDoorText = false
     let showWelcomeText = false
+    let canDrop = false
+
+    let actionLabel = ''
+    let actionColor = ''
+    let actionKey = ''
+    let showMobileAction = false
 
     if (isGameActive) {
       if (playerState.isSitting) playerState.hasSatDown = true
 
+      canDrop = playerState.hasCrowbar
+
       const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
-      if (doorDist < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
-        showDoorText = true
+      
+      // Determine what the primary "action" button should do on mobile based on proximity
+      if (playerState.isSitting && playerState.sitType === 'desk') {
+        showMobileAction = true; actionKey = 'i'; actionLabel = 'OS'; actionColor = '#ff2a5f';
+      } else if (distToGallery < 1.5 && !playerState.isSitting) {
+        showMobileAction = true; actionKey = 'f'; actionLabel = 'VIEW'; actionColor = '#ffb703';
+      } else if (doorDist < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
+        showDoorText = true;
+        showMobileAction = true; actionKey = 'e'; actionLabel = 'OPEN'; actionColor = '#00ffcc';
+      } else if (!playerState.hasSatDown || playerState.isSitting) {
+        showMobileAction = true; actionKey = 'e'; actionLabel = 'E'; actionColor = '#00ffcc';
       }
 
       if (!playerState.hasSatDown) {
@@ -407,13 +378,23 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
       }
     }
 
+    // Update Desktop Elements
     if (welcomeHint) welcomeHint.style.display = showWelcomeText ? 'block' : 'none'
     if (doorPrompt) doorPrompt.style.display = showDoorText ? 'block' : 'none'
-
-    const dropPrompt = document.getElementById('drop-prompt')
-    const canDrop = playerState.hasCrowbar && isGameActive
-    
     if (dropPrompt) dropPrompt.style.display = canDrop ? 'block' : 'none'
+
+    // Update Mobile Elements
+    if (mobileBtnDrop) mobileBtnDrop.style.display = canDrop ? 'flex' : 'none'
+    if (mobileBtnAction) {
+      mobileBtnAction.style.display = showMobileAction ? 'flex' : 'none'
+      if (showMobileAction) {
+        mobileBtnAction.innerText = actionLabel
+        mobileBtnAction.style.borderColor = actionColor
+        mobileBtnAction.style.color = actionColor
+        mobileBtnAction.style.boxShadow = `0 0 10px ${actionColor}80`
+        mobileBtnAction.setAttribute('data-key', actionKey)
+      }
+    }
   })
 
   return null
@@ -439,7 +420,6 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
 
 export default function App() {
   const [hasLoaded, setHasLoaded] = useState(false) 
-  
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const [isPortrait, setIsPortrait] = useState(false)
 
@@ -523,9 +503,8 @@ export default function App() {
         <TerminalBootLoader setHasLoaded={setHasLoaded} />
       )}
 
-      {/* 🚨 THE MOBILE GAMEPAD */}
       {isTouchDevice && !isPortrait && hasLoaded && !isUIOpen && !isGalleryOpen && (
-        <MobileGamepad playerState={playerState} setIsUIOpen={setIsUIOpen} setIsGalleryOpen={setIsGalleryOpen} />
+        <MobileGamepad playerState={playerState} />
       )}
       
       {isGalleryOpen && !isLocked && (
@@ -574,13 +553,13 @@ export default function App() {
         </div>
       )}
       
-      {!isUIOpen && !isGalleryOpen && (
+      {!isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div id="interact-prompt" style={cleanPromptStyle}>
           [ I ] INTERACT WITH TERMINAL
         </div>
       )}
 
-      {!isUIOpen && !isGalleryOpen && (
+      {!isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div id="gallery-prompt" style={cleanPromptStyle}>
           [ F ] VIEW GALLERY
         </div>
@@ -594,9 +573,17 @@ export default function App() {
         PRESS [ E ] TO STAND UP FIRST
       </div>
 
-      <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
-        [ G ] DROP CROWBAR
-      </div>
+      {!isTouchDevice && (
+        <div id="door-prompt" style={cleanPromptStyle}>
+          [ E ] OPEN DOOR
+        </div>
+      )}
+
+      {!isTouchDevice && (
+        <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
+          [ G ] DROP CROWBAR
+        </div>
+      )}
 
       {isLocked && !isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div style={{ position: 'absolute', bottom: '20px', right: '20px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'monospace', fontSize: '0.85rem', zIndex: 50, pointerEvents: 'none' }}>

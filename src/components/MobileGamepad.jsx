@@ -1,37 +1,9 @@
 import React, { useRef, useState } from 'react'
-import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
 
-export default function MobileGamepad({ playerState, setIsUIOpen, setIsGalleryOpen }) {
+export default function MobileGamepad({ playerState }) {
   const [stickPos, setStickPos] = useState({ x: 0, y: 0 })
   const joystickBaseRef = useRef(null)
   const touchIdRef = useRef(null)
-
-  // Contextual UI State
-  const [contextAction, setContextAction] = useState(null)
-
-  // 🚨 NEW: Polling loop to dynamically figure out what button to show
-  useFrame(() => {
-    let newAction = null
-    const distToGallery = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
-    const distToDoor = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
-
-    if (playerState.isSitting && playerState.sitType === 'desk') {
-      newAction = { key: 'i', label: 'OS', color: '#ff2a5f' }
-    } else if (distToGallery < 1.5 && !playerState.isSitting) {
-      newAction = { key: 'f', label: 'VIEW', color: '#ffb703' }
-    } else if (distToDoor < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
-      newAction = { key: 'e', label: 'OPEN', color: '#00ffcc' }
-    } else if (!playerState.hasSatDown || playerState.isSitting) {
-      // Just a generic interact button if near the desk or sitting
-      newAction = { key: 'e', label: 'E', color: '#00ffcc' }
-    }
-
-    // Only update state if it actually changed to prevent React re-render loops
-    if (JSON.stringify(newAction) !== JSON.stringify(contextAction)) {
-      setContextAction(newAction)
-    }
-  })
 
   // --- JOYSTICK LOGIC ---
   const handleJoystickTouchStart = (e) => {
@@ -138,20 +110,28 @@ export default function MobileGamepad({ playerState, setIsUIOpen, setIsGalleryOp
         <button style={{ ...btnBase, width: '70px', height: '70px', fontSize: '0.9rem', borderColor: 'rgba(255,255,255,0.6)' }} onTouchStart={(e) => { e.preventDefault(); triggerKey(' ') }}>JUMP</button>
       </div>
 
-      {/* 🚨 THE SMART CONTEXTUAL BUTTON */}
+      {/* 🚨 SMART CONTEXTUAL BUTTONS: Driven directly by UIManager in App.jsx */}
       <div style={{ position: 'absolute', bottom: '130px', right: '40px', display: 'flex', gap: '15px', pointerEvents: 'auto' }}>
-        {playerState.hasCrowbar && (
-          <button style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.8rem' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('g') }}>DROP</button>
-        )}
+        <button 
+          id="mobile-btn-drop" 
+          style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.8rem', display: 'none' }} 
+          onTouchStart={(e) => { e.preventDefault(); triggerKey('g') }}
+        >
+          DROP
+        </button>
         
-        {contextAction && (
-          <button 
-            style={{ ...btnBase, width: '65px', height: '65px', fontSize: '1rem', borderColor: contextAction.color, color: contextAction.color, boxShadow: `0 0 10px ${contextAction.color}80` }} 
-            onTouchStart={(e) => { e.preventDefault(); triggerKey(contextAction.key) }}
-          >
-            {contextAction.label}
-          </button>
-        )}
+        <button 
+          id="mobile-btn-action" 
+          data-key="e" // Dynamically updated by UIManager
+          style={{ ...btnBase, width: '65px', height: '65px', fontSize: '1rem', display: 'none' }} 
+          onTouchStart={(e) => { 
+            e.preventDefault(); 
+            // Reads whatever key the UIManager assigned to this button (e, f, i)
+            triggerKey(e.currentTarget.getAttribute('data-key'));
+          }}
+        >
+          {/* Text injected by UIManager */}
+        </button>
       </div>
     </div>
   )
