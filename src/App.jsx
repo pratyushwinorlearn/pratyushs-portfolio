@@ -15,7 +15,7 @@ import InteractiveCrowbar from './components/InteractiveCrowbar.jsx'
 import MobileGamepad from './components/MobileGamepad.jsx'
 
 // --- RETRO TERMINAL BOOT LOADER ---
-function TerminalBootLoader({ setHasLoaded }) {
+function TerminalBootLoader({ setHasLoaded, isTouchDevice }) {
   const { progress } = useProgress()
   const [bootLog, setBootLog] = useState([])
   const [isReadyToStart, setIsReadyToStart] = useState(false)
@@ -45,7 +45,7 @@ function TerminalBootLoader({ setHasLoaded }) {
 
   const handleStart = () => {
     if (isReadyToStart) {
-      if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      if (isTouchDevice) {
         try {
           if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(() => {});
@@ -76,34 +76,59 @@ function TerminalBootLoader({ setHasLoaded }) {
         backgroundSize: '100% 4px', pointerEvents: 'none', zIndex: 10
       }} />
       
-      <div style={{ width: '80%', maxWidth: '900px', zIndex: 20, textShadow: '0px 0px 6px rgba(255,183,3,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '2px', lineHeight: '1.2' }}>
-          Pratyush's Portfolio
-        </h1>
-        
-        <p style={{ fontSize: '1rem', borderBottom: '2px solid #ffb703', paddingBottom: '15px', margin: '0 0 30px 0', letterSpacing: '1px' }}>
-          (c) कॉपीराइट शेखर प्रत्युष
-        </p>
-        
-        <div style={{ width: '100%', minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', marginBottom: '40px', fontSize: '0.9rem', lineHeight: '1.5' }}>
-          {bootLog.map((log, i) => (
-            <div key={i} style={{ marginBottom: '8px' }}>{`> ${log}`}</div>
-          ))}
-          <div style={{ animation: 'blink 1s step-end infinite' }}>_</div>
-        </div>
-
-        <div style={{ width: '100%' }}>
-          <div style={{ marginBottom: '15px', fontSize: '1rem' }}>
-            लोड हो रहा है: [{barString}] {Math.round(progress)}%
+      {/* 🚨 UNIQUE MOBILE UI: Centered Tactical Button once loaded */}
+      {isReadyToStart && isTouchDevice ? (
+        <div style={{ zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{
+            padding: '20px 40px',
+            border: '2px solid #00ffcc',
+            backgroundColor: 'rgba(0, 255, 204, 0.1)',
+            color: '#00ffcc',
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            letterSpacing: '4px',
+            boxShadow: '0 0 20px rgba(0,255,204,0.3)',
+            clipPath: 'polygon(15% 0, 100% 0, 100% 70%, 85% 100%, 0 100%, 0 30%)',
+            animation: 'pulse 1.5s infinite',
+          }}>
+            SYSTEM.INIT()
+          </div>
+          <div style={{ marginTop: '20px', color: '#888', fontSize: '0.85rem', letterSpacing: '2px' }}>
+            [ TAP TO OVERRIDE ]
           </div>
         </div>
-
-        {isReadyToStart && (
-          <div style={{ marginTop: '20px', padding: '15px 30px', border: '2px solid #ffb703', borderRadius: '8px', animation: 'pulse 1.5s infinite', backgroundColor: 'rgba(255,183,3,0.1)' }}>
-            [ TAP SCREEN TO START ]
+      ) : (
+        /* STANDARD DESKTOP BOOT SEQUENCE (Also shows on mobile while loading) */
+        <div style={{ width: '80%', maxWidth: '900px', zIndex: 20, textShadow: '0px 0px 6px rgba(255,183,3,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '2.5rem', margin: '0 0 5px 0', letterSpacing: '2px', lineHeight: '1.2' }}>
+            Pratyush's Portfolio
+          </h1>
+          
+          <p style={{ fontSize: '1rem', borderBottom: '2px solid #ffb703', paddingBottom: '15px', margin: '0 0 30px 0', letterSpacing: '1px' }}>
+            (c) कॉपीराइट शेखर प्रत्युष
+          </p>
+          
+          <div style={{ width: '100%', minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', marginBottom: '40px', fontSize: '0.9rem', lineHeight: '1.5' }}>
+            {bootLog.map((log, i) => (
+              <div key={i} style={{ marginBottom: '8px' }}>{`> ${log}`}</div>
+            ))}
+            <div style={{ animation: 'blink 1s step-end infinite' }}>_</div>
           </div>
-        )}
-      </div>
+
+          <div style={{ width: '100%' }}>
+            <div style={{ marginBottom: '15px', fontSize: '1rem' }}>
+              लोड हो रहा है: [{barString}] {Math.round(progress)}%
+            </div>
+          </div>
+
+          {/* PC start button */}
+          {isReadyToStart && !isTouchDevice && (
+            <div style={{ marginTop: '20px', padding: '15px 30px', border: '2px solid #ffb703', borderRadius: '8px', animation: 'pulse 1.5s infinite', backgroundColor: 'rgba(255,183,3,0.1)' }}>
+              [ CLICK SCREEN TO START ]
+            </div>
+          )}
+        </div>
+      )}
       
       <style>{`
         @font-face {
@@ -269,7 +294,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
 
     const prompt = document.getElementById('interact-prompt')
     const canUseTerminal = playerState.isSitting && playerState.sitType === 'desk' && isGameActive
-    
     if (prompt) {
       prompt.style.display = canUseTerminal ? 'block' : 'none'
       if (canUseTerminal) {
@@ -307,7 +331,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
 
       canDrop = playerState.hasCrowbar
 
-      // 🚨 FIX: The OS button ONLY appears if the player is actually in FPP mode!
       if (playerState.isSitting && playerState.sitType === 'desk') {
         if (playerState.mode === 'fpp') {
           showMobileAction = true; actionKey = 'i'; actionLabel = 'OS'; actionColor = '#ff2a5f';
@@ -442,44 +465,52 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [])
 
+  // 🚨 UNIQUE MOBILE UI: Pure CSS Rotating Graphic to replace the ugly emojis
   if (isTouchDevice && isPortrait && hasLoaded) {
     return (
-      <div style={{ width: '100vw', height: '100vh', backgroundColor: '#050403', color: '#ffb703', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"Sarpanch", monospace', textAlign: 'center', padding: '20px' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '20px', animation: 'pulse 2s infinite' }}>🔄</div>
-        <h2>PLEASE ROTATE YOUR DEVICE</h2>
-        <p style={{ color: '#888', marginTop: '10px' }}>Turn your phone horizontal to activate the 3D base.</p>
-        <style>{`@keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }`}</style>
+      <div style={{ width: '100vw', height: '100vh', backgroundColor: '#050403', color: '#00ffcc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"Sarpanch", monospace', textAlign: 'center', padding: '20px', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%)', backgroundSize: '100% 4px', pointerEvents: 'none' }} />
+        
+        <div style={{ zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{
+            width: '50px', height: '80px', border: '3px solid #00ffcc', borderRadius: '8px', marginBottom: '30px',
+            position: 'relative', animation: 'rotatePhone 2s infinite ease-in-out',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(0,255,204,0.3)'
+          }}>
+            <div style={{ width: '20px', height: '3px', backgroundColor: '#00ffcc', position: 'absolute', bottom: '6px', borderRadius: '2px' }} />
+          </div>
+          
+          <h2 style={{ letterSpacing: '3px', margin: '0 0 10px 0', fontSize: '1.8rem', textShadow: '0 0 10px rgba(0,255,204,0.5)' }}>ORIENTATION LOCK</h2>
+          <p style={{ color: '#888', fontSize: '0.9rem', letterSpacing: '1px', maxWidth: '80%', lineHeight: '1.5' }}>
+            CRITICAL: LANDSCAPE MODE REQUIRED FOR NEURAL LINK.
+          </p>
+        </div>
+
+        <style>{`
+          @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            40% { transform: rotate(-90deg); }
+            60% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+          }
+        `}</style>
       </div>
     )
   }
 
-  // 🚨 FIX: Clean, compact responsive styling for mobile text prompts!
   const cleanPromptStyle = {
-    position: 'absolute', 
-    bottom: isTouchDevice ? '10%' : '15%', 
-    left: '50%', 
-    transform: 'translateX(-50%)', 
-    color: '#ffffff', 
-    fontFamily: 'sans-serif', 
-    fontWeight: 'bold', 
-    fontSize: isTouchDevice ? '0.85rem' : '1.2rem', 
-    backgroundColor: 'rgba(0,0,0,0.85)', 
-    padding: isTouchDevice ? '8px 16px' : '10px 24px', 
-    border: '2px solid #ffffff', 
-    borderRadius: '8px', 
-    display: 'none', 
-    zIndex: 100, 
-    pointerEvents: 'none', 
-    boxShadow: '0 4px 10px rgba(0,0,0,0.5)',
-    textAlign: 'center',
-    whiteSpace: 'nowrap'
+    position: 'absolute', bottom: isTouchDevice ? '10%' : '15%', left: '50%', transform: 'translateX(-50%)', 
+    color: '#ffffff', fontFamily: 'sans-serif', fontWeight: 'bold', fontSize: isTouchDevice ? '0.85rem' : '1.2rem', 
+    backgroundColor: 'rgba(0,0,0,0.85)', padding: isTouchDevice ? '8px 16px' : '10px 24px', border: '2px solid #ffffff', 
+    borderRadius: '8px', display: 'none', zIndex: 100, pointerEvents: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.5)',
+    textAlign: 'center', whiteSpace: 'nowrap'
   }
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       
       {!hasLoaded && (
-        <TerminalBootLoader setHasLoaded={setHasLoaded} />
+        <TerminalBootLoader setHasLoaded={setHasLoaded} isTouchDevice={isTouchDevice} />
       )}
 
       {isTouchDevice && !isPortrait && hasLoaded && !isUIOpen && !isGalleryOpen && (
