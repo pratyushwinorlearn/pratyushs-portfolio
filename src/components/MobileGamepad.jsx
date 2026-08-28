@@ -74,8 +74,18 @@ export default function MobileGamepad({ playerState }) {
     playerState.touchLookDelta.y = 0
   }
 
-  const triggerKey = (key) => window.dispatchEvent(new KeyboardEvent('keydown', { key }))
-  const triggerKeyUp = (key) => window.dispatchEvent(new KeyboardEvent('keyup', { key }))
+  // 🚨 FIX: Bulletproof Hardware-Level Fake Events
+  const triggerKey = (keyStr) => {
+    const codeStr = keyStr === ' ' ? 'Space' : keyStr === 'ShiftLeft' ? 'ShiftLeft' : `Key${keyStr.toUpperCase()}`;
+    const event = new KeyboardEvent('keydown', { key: keyStr, code: codeStr, keyCode: keyStr === ' ' ? 32 : keyStr.toUpperCase().charCodeAt(0), bubbles: true, cancelable: true, composed: true });
+    window.dispatchEvent(event);
+  }
+
+  const triggerKeyUp = (keyStr) => {
+    const codeStr = keyStr === ' ' ? 'Space' : keyStr === 'ShiftLeft' ? 'ShiftLeft' : `Key${keyStr.toUpperCase()}`;
+    const event = new KeyboardEvent('keyup', { key: keyStr, code: codeStr, keyCode: keyStr === ' ' ? 32 : keyStr.toUpperCase().charCodeAt(0), bubbles: true, cancelable: true, composed: true });
+    window.dispatchEvent(event);
+  }
 
   const btnBase = {
     borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.5)', border: '2px solid rgba(255,255,255,0.3)',
@@ -90,6 +100,7 @@ export default function MobileGamepad({ playerState }) {
         onTouchStart={handleCameraTouchStart} onTouchMove={handleCameraTouchMove} onTouchEnd={handleCameraTouchEnd}
       />
 
+      {/* Joystick */}
       <div 
         ref={joystickBaseRef}
         style={{ position: 'absolute', bottom: '40px', left: '40px', width: '100px', height: '100px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', pointerEvents: 'auto', touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -98,6 +109,7 @@ export default function MobileGamepad({ playerState }) {
         <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#ffb703', transform: `translate(${stickPos.x}px, ${stickPos.y}px)`, boxShadow: '0 0 10px rgba(255,183,3,0.8)' }} />
       </div>
 
+      {/* PERMANENT ACTION BUTTONS */}
       <div style={{ position: 'absolute', bottom: '30px', right: '30px', display: 'flex', gap: '15px', alignItems: 'flex-end', pointerEvents: 'auto' }}>
         <button style={{ ...btnBase, width: '40px', height: '40px', fontSize: '0.7rem' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('v') }}>V</button>
         
@@ -110,27 +122,18 @@ export default function MobileGamepad({ playerState }) {
         <button style={{ ...btnBase, width: '70px', height: '70px', fontSize: '0.9rem', borderColor: 'rgba(255,255,255,0.6)' }} onTouchStart={(e) => { e.preventDefault(); triggerKey(' ') }}>JUMP</button>
       </div>
 
-      {/* 🚨 SMART CONTEXTUAL BUTTONS: Driven directly by UIManager in App.jsx */}
+      {/* CONTEXTUAL BUTTONS */}
       <div style={{ position: 'absolute', bottom: '130px', right: '40px', display: 'flex', gap: '15px', pointerEvents: 'auto' }}>
-        <button 
-          id="mobile-btn-drop" 
-          style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.8rem', display: 'none' }} 
-          onTouchStart={(e) => { e.preventDefault(); triggerKey('g') }}
-        >
-          DROP
-        </button>
-        
+        <button id="mobile-btn-drop" style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.8rem', display: 'none' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('g') }}>DROP</button>
         <button 
           id="mobile-btn-action" 
-          data-key="e" // Dynamically updated by UIManager
           style={{ ...btnBase, width: '65px', height: '65px', fontSize: '1rem', display: 'none' }} 
           onTouchStart={(e) => { 
             e.preventDefault(); 
-            // Reads whatever key the UIManager assigned to this button (e, f, i)
-            triggerKey(e.currentTarget.getAttribute('data-key'));
+            const keyToFire = e.currentTarget.getAttribute('data-key') || 'e';
+            triggerKey(keyToFire);
           }}
         >
-          {/* Text injected by UIManager */}
         </button>
       </div>
     </div>

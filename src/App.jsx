@@ -45,13 +45,17 @@ function TerminalBootLoader({ setHasLoaded }) {
     }
   }, [progress])
 
-  // 🚨 Handles native fullscreen API safely
+  // 🚨 FIX: Forces Chrome into Fullscreen when you click the Start button
   const handleStart = () => {
     if (isReadyToStart) {
       if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        }
+        try {
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+          }
+        } catch(e) {}
       }
       setHasLoaded(true)
     }
@@ -97,7 +101,6 @@ function TerminalBootLoader({ setHasLoaded }) {
           </div>
         </div>
 
-        {/* 🚨 Make it obvious the user has to tap to enter fullscreen! */}
         {isReadyToStart && (
           <div style={{ marginTop: '20px', padding: '15px 30px', border: '2px solid #ffb703', borderRadius: '8px', animation: 'pulse 1.5s infinite', backgroundColor: 'rgba(255,183,3,0.1)' }}>
             [ TAP SCREEN TO START ]
@@ -115,60 +118,33 @@ function TerminalBootLoader({ setHasLoaded }) {
     </div>
   )
 }
-// --------------------------------------------------------
 
 function Earth() {
   const earthRef = useRef()
   const earthTexture = useTexture('/earth-texture.jpg')
-
-  useFrame((state) => {
-    if (earthRef.current) {
-      earthRef.current.rotation.y = state.clock.getElapsedTime() * 0.005
-    }
-  })
-
+  useFrame((state) => { if (earthRef.current) earthRef.current.rotation.y = state.clock.getElapsedTime() * 0.005 })
   return (
     <group ref={earthRef} position={[50, 100, 700]}>
-      <mesh>
-        <sphereGeometry args={[25, 25, 25]} />
-        <meshStandardMaterial map={earthTexture} />
-      </mesh>
+      <mesh><sphereGeometry args={[25, 25, 25]} /><meshStandardMaterial map={earthTexture} /></mesh>
     </group>
   )
 }
 
 function RoomWall() {
-  const [tex1, tex2, tex3] = useTexture([
-    '/india-today-intern.jpg', 
-    '/moon-texture.jpg',
-    '/earth-texture.jpg' 
-  ])
-
+  const [tex1, tex2, tex3] = useTexture(['/india-today-intern.jpg', '/moon-texture.jpg', '/earth-texture.jpg'])
   const circleTexture = useMemo(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 16
-    canvas.height = 16
-    const context = canvas.getContext('2d')
-    context.beginPath()
-    context.arc(8, 8, 8, 0, 2 * Math.PI)
-    context.fillStyle = 'white'
-    context.fill()
+    canvas.width = 16; canvas.height = 16; const context = canvas.getContext('2d')
+    context.beginPath(); context.arc(8, 8, 8, 0, 2 * Math.PI); context.fillStyle = 'white'; context.fill()
     return new THREE.CanvasTexture(canvas)
   }, [])
 
   const starCount = 200;
   const [starPositions, starPhases, starSpeeds, initialColors] = useMemo(() => {
-    const positions = new Float32Array(starCount * 3);
-    const phases = new Float32Array(starCount);
-    const speeds = new Float32Array(starCount);
-    const colors = new Float32Array(starCount * 3).fill(1); 
-    
+    const positions = new Float32Array(starCount * 3); const phases = new Float32Array(starCount); const speeds = new Float32Array(starCount); const colors = new Float32Array(starCount * 3).fill(1); 
     for (let i = 0; i < starCount; i++) {
-      positions[i * 3] = -2.57; 
-      positions[i * 3 + 1] = 1.45 + (Math.random() - 0.5) * 3.4; 
-      positions[i * 3 + 2] = -4.4 + (Math.random() - 0.5) * 3.5; 
-      phases[i] = Math.random() * Math.PI * 2; 
-      speeds[i] = 0.5 + Math.random() * 2.0; 
+      positions[i * 3] = -2.57; positions[i * 3 + 1] = 1.45 + (Math.random() - 0.5) * 3.4; positions[i * 3 + 2] = -4.4 + (Math.random() - 0.5) * 3.5; 
+      phases[i] = Math.random() * Math.PI * 2; speeds[i] = 0.5 + Math.random() * 2.0; 
     }
     return [positions, phases, speeds, colors];
   }, []);
@@ -177,16 +153,10 @@ function RoomWall() {
 
   useFrame((state) => {
     if (starsRef.current) {
-      const time = state.clock.getElapsedTime();
-      const colors = starsRef.current.geometry.attributes.color.array;
-      
+      const time = state.clock.getElapsedTime(); const colors = starsRef.current.geometry.attributes.color.array;
       for (let i = 0; i < starCount; i++) {
-        let brightness = (Math.sin(time * starSpeeds[i] + starPhases[i]) + 1) / 2;
-        brightness = Math.pow(brightness, 2.5); 
-        
-        colors[i * 3] = brightness;     
-        colors[i * 3 + 1] = brightness; 
-        colors[i * 3 + 2] = brightness; 
+        let brightness = (Math.sin(time * starSpeeds[i] + starPhases[i]) + 1) / 2; brightness = Math.pow(brightness, 2.5); 
+        colors[i * 3] = brightness; colors[i * 3 + 1] = brightness; colors[i * 3 + 2] = brightness; 
       }
       starsRef.current.geometry.attributes.color.needsUpdate = true;
     }
@@ -195,12 +165,8 @@ function RoomWall() {
   return (
     <group>
       <RigidBody type="fixed" colliders="cuboid">
-        <mesh position={[-2.6, 1.45, -4.4]}>
-          <boxGeometry args={[0.05, 3.5, 3.6]} />
-          <meshBasicMaterial color="#000000" />
-        </mesh>
+        <mesh position={[-2.6, 1.45, -4.4]}><boxGeometry args={[0.05, 3.5, 3.6]} /><meshBasicMaterial color="#000000" /></mesh>
       </RigidBody>
-
       <points ref={starsRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" count={starCount} array={starPositions} itemSize={3} />
@@ -208,7 +174,6 @@ function RoomWall() {
         </bufferGeometry>
         <pointsMaterial size={0.015} map={circleTexture} vertexColors={true} transparent={true} alphaTest={0.01} sizeAttenuation={true} depthWrite={false} />
       </points>
-
       <group position={[-2.55, 1.6, -4.4]} rotation={[0, Math.PI / 2, 0]}>
         <group position={[-0.9, 0, 0]}>
           <mesh position={[0, 0, 0.015]}><planeGeometry args={[0.6, 0.8]} /><meshStandardMaterial map={tex1} /></mesh>
@@ -231,13 +196,9 @@ function LunarSurface() {
   const moonTexture = useTexture('/moon-texture.jpg')
   moonTexture.wrapS = moonTexture.wrapT = THREE.MirroredRepeatWrapping
   moonTexture.repeat.set(30, 30)
-
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.004, 0]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[1000, 1000]} />
-        <meshStandardMaterial map={moonTexture} color="#aaaaaa" />
-      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[1000, 1000]} /><meshStandardMaterial map={moonTexture} color="#aaaaaa" /></mesh>
     </RigidBody>
   )
 }
@@ -249,20 +210,11 @@ function SkyboxModel() {
 
 function CreditsWhiteboard() {
   const { scene } = useGLTF('/whiteboard/scene.gltf')
-
   return (
     <RigidBody type="fixed" colliders="hull">
       <primitive object={scene} position={[-0.289, 1.805, -2.616]} rotation={[0, -0.3, 0]} scale={0.003} />
       <Text position={[-0.289, 1.805, -2.645]} rotation={[0, 3.15, 0]} fontSize={0.03} color="#030303" font="/fonts/PasseroOne-Regular.ttf" lineHeight={1.4} textAlign="center" anchorX="center" anchorY="middle">
-        CREDITS{"\n\n"}
-          3D ASSETS (Sketchfab):{"\n\n"}
-          Control Room by amogusstrikesback2{"\n"}
-          Skybox of Constellations by tiunov.se{"\n"}
-          Earth Texture{"\n"}
-          Whiteboard by Reflex_Entertainment{"\n"}
-          Old Chair by KZNYKN{"\n"}
-          Character and its animations from Mixamo{"\n\n"}
-          Designed & Developed by Shekhar Pratyush{"\n"}
+        CREDITS{"\n\n"}3D ASSETS (Sketchfab):{"\n\n"}Control Room by amogusstrikesback2{"\n"}Skybox of Constellations by tiunov.se{"\n"}Earth Texture{"\n"}Whiteboard by Reflex_Entertainment{"\n"}Old Chair by KZNYKN{"\n"}Character and its animations from Mixamo{"\n\n"}Designed & Developed by Shekhar Pratyush{"\n"}
       </Text>
     </RigidBody>
   )
@@ -270,9 +222,7 @@ function CreditsWhiteboard() {
 
 function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTouchDevice }) {
   useEffect(() => {
-    if (isUIOpen) {
-      playerState.hasUsedTerminal = true;
-    }
+    if (isUIOpen) playerState.hasUsedTerminal = true;
   }, [isUIOpen, playerState]);
 
   useEffect(() => {
@@ -308,9 +258,7 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
         if (warning) {
           warning.style.display = 'block'
           if (window.movementWarningTimer) clearTimeout(window.movementWarningTimer)
-          window.movementWarningTimer = setTimeout(() => {
-            warning.style.display = 'none'
-          }, 2000)
+          window.movementWarningTimer = setTimeout(() => { warning.style.display = 'none' }, 2000)
         }
       }
     }
@@ -321,7 +269,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
   useFrame(() => {
     const isGameActive = isTouchDevice || !!document.pointerLockElement
 
-    // 🚨 Desktop Text Prompts
     const prompt = document.getElementById('interact-prompt')
     const canUseTerminal = playerState.isSitting && playerState.sitType === 'desk' && isGameActive
     if (prompt) prompt.style.display = canUseTerminal ? 'block' : 'none'
@@ -332,12 +279,10 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
     const canViewGallery = distToGallery < 1.5 && !playerState.isSitting && isGameActive
     if (galleryPrompt) galleryPrompt.style.display = canViewGallery ? 'block' : 'none'
 
-    // 🚨 Contextual Logic for Desktop and Mobile
     const welcomeHint = document.getElementById('welcome-hint')
     const doorPrompt = document.getElementById('door-prompt')
     const dropPrompt = document.getElementById('drop-prompt')
     
-    // 🚨 Mobile Action Button Injection
     const mobileBtnAction = document.getElementById('mobile-btn-action')
     const mobileBtnDrop = document.getElementById('mobile-btn-drop')
 
@@ -357,7 +302,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
 
       const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
       
-      // Determine what the primary "action" button should do on mobile based on proximity
       if (playerState.isSitting && playerState.sitType === 'desk') {
         showMobileAction = true; actionKey = 'i'; actionLabel = 'OS'; actionColor = '#ff2a5f';
       } else if (distToGallery < 1.5 && !playerState.isSitting) {
@@ -378,12 +322,10 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
       }
     }
 
-    // Update Desktop Elements
     if (welcomeHint) welcomeHint.style.display = showWelcomeText ? 'block' : 'none'
     if (doorPrompt) doorPrompt.style.display = showDoorText ? 'block' : 'none'
     if (dropPrompt) dropPrompt.style.display = canDrop ? 'block' : 'none'
 
-    // Update Mobile Elements
     if (mobileBtnDrop) mobileBtnDrop.style.display = canDrop ? 'flex' : 'none'
     if (mobileBtnAction) {
       mobileBtnAction.style.display = showMobileAction ? 'flex' : 'none'
@@ -437,6 +379,17 @@ export default function App() {
       const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
       setIsTouchDevice(hasTouch)
       setIsPortrait(window.innerHeight > window.innerWidth)
+      
+      // 🚨 GLOBAL POINTER LOCK HACK FOR MOBILE 🚨
+      // Tricks your InteractiveChair.jsx and Sofa into functioning smoothly!
+      if (hasTouch) {
+        try {
+          Object.defineProperty(document, 'pointerLockElement', {
+            get: () => document.body,
+            configurable: true
+          });
+        } catch(e) {}
+      }
     }
     
     checkTouchAndOrientation() 
@@ -453,7 +406,12 @@ export default function App() {
     if (oldHint) oldHint.style.display = 'none'
 
     const onChange = () => {
-      setIsLocked(!!document.pointerLockElement)
+      // Safely ignore the mock pointer lock so Desktop behaves normally
+      if (!('ontouchstart' in window)) {
+        setIsLocked(!!document.pointerLockElement)
+      } else {
+        setIsLocked(true) // Always treat mobile as "locked in"
+      }
     }
     document.addEventListener('pointerlockchange', onChange)
     return () => document.removeEventListener('pointerlockchange', onChange)
@@ -507,7 +465,7 @@ export default function App() {
         <MobileGamepad playerState={playerState} />
       )}
       
-      {isGalleryOpen && !isLocked && (
+      {isGalleryOpen && (!isLocked || isTouchDevice) && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(5, 4, 3, 0.97)', zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <h2 style={{ color: '#ffb703', fontFamily: '"Sarpanch", monospace', fontSize: '2.5rem', marginBottom: '40px', letterSpacing: '2px' }}>ARCHIVED MEMORIES</h2>
           
