@@ -250,15 +250,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
           }
         }
       }
-
-      if (['w', 'a', 's', 'd'].includes(key) && playerState.isSitting) {
-        const warning = document.getElementById('warning-message')
-        if (warning) {
-          warning.style.display = 'block'
-          if (window.movementWarningTimer) clearTimeout(window.movementWarningTimer)
-          window.movementWarningTimer = setTimeout(() => { warning.style.display = 'none' }, 2000)
-        }
-      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -267,7 +258,6 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
   useFrame(() => {
     const isGameActive = isTouchDevice || !!document.pointerLockElement
 
-    // 🚨 FIX: Restored text prompts for mobile by checking `isTouchDevice` dynamically
     const prompt = document.getElementById('interact-prompt')
     const canUseTerminal = playerState.isSitting && playerState.sitType === 'desk' && isGameActive
     if (prompt) {
@@ -283,8 +273,8 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
     const distToGallery = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
     const canViewGallery = distToGallery < 1.5 && !playerState.isSitting && isGameActive
     if (galleryPrompt) {
-      galleryPrompt.style.display = canViewGallery ? 'block' : 'none'
-      if (canViewGallery && isTouchDevice) galleryPrompt.innerText = '[ VIEW ] GALLERY'
+      // 🚨 FIX: Gallery text prompt only shows on PC. Mobile uses the circular HUD button instead.
+      galleryPrompt.style.display = (canViewGallery && !isTouchDevice) ? 'block' : 'none'
     }
 
     const welcomeHint = document.getElementById('welcome-hint')
@@ -329,8 +319,12 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
     }
 
     if (welcomeHint) welcomeHint.style.display = showWelcomeText ? 'block' : 'none'
-    if (doorPrompt) doorPrompt.style.display = showDoorText ? 'block' : 'none'
-    if (dropPrompt) dropPrompt.style.display = canDrop ? 'block' : 'none'
+    
+    // 🚨 FIX: Door text prompt only shows on PC
+    if (doorPrompt) doorPrompt.style.display = (showDoorText && !isTouchDevice) ? 'block' : 'none'
+    
+    // 🚨 FIX: Drop text prompt only shows on PC
+    if (dropPrompt) dropPrompt.style.display = (canDrop && !isTouchDevice) ? 'block' : 'none'
 
     if (mobileBtnDrop) mobileBtnDrop.style.display = canDrop ? 'flex' : 'none'
     
@@ -519,14 +513,15 @@ export default function App() {
         </div>
       )}
       
-      {/* 🚨 FIX: Removed `!isTouchDevice` so visual prompts show on mobile again */}
+      {/* 🚨 ALWAYS SHOW OS/TERMINAL PROMPT (Even on mobile) */}
       {!isUIOpen && !isGalleryOpen && (
         <div id="interact-prompt" style={cleanPromptStyle}>
           [ I ] INTERACT WITH TERMINAL
         </div>
       )}
 
-      {!isUIOpen && !isGalleryOpen && (
+      {/* 🚨 FIX: Gallery Prompt explicitly hidden on touch devices */}
+      {!isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div id="gallery-prompt" style={cleanPromptStyle}>
           [ F ] VIEW GALLERY
         </div>
@@ -536,17 +531,24 @@ export default function App() {
         OBJECTIVE: Approach the main desk and press [ E ] to sit.
       </div>
 
+      {/* 🚨 ALWAYS SHOW WARNING PROMPT ("TAP E TO STAND") */}
       <div id="warning-message" style={{ ...cleanPromptStyle, top: '20%', bottom: 'auto', color: '#ff4444', borderColor: '#ff4444' }}>
-        PRESS [ E ] TO STAND UP FIRST
+        {isTouchDevice ? 'TAP [ E ] TO STAND UP FIRST' : 'PRESS [ E ] TO STAND UP FIRST'}
       </div>
 
-      <div id="door-prompt" style={cleanPromptStyle}>
-        [ E ] OPEN DOOR
-      </div>
+      {/* 🚨 FIX: Door Prompt explicitly hidden on touch devices */}
+      {!isTouchDevice && (
+        <div id="door-prompt" style={cleanPromptStyle}>
+          [ E ] OPEN DOOR
+        </div>
+      )}
 
-      <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
-        [ G ] DROP CROWBAR
-      </div>
+      {/* 🚨 FIX: Drop Prompt explicitly hidden on touch devices */}
+      {!isTouchDevice && (
+        <div id="drop-prompt" style={{ ...cleanPromptStyle, right: '5%', left: 'auto', transform: 'none' }}>
+          [ G ] DROP CROWBAR
+        </div>
+      )}
 
       {isLocked && !isUIOpen && !isGalleryOpen && !isTouchDevice && (
         <div style={{ position: 'absolute', bottom: '20px', right: '20px', color: 'rgba(255, 255, 255, 0.4)', fontFamily: 'monospace', fontSize: '0.85rem', zIndex: 50, pointerEvents: 'none' }}>
