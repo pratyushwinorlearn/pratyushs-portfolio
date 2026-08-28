@@ -1,10 +1,39 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState } from 'react'
+import { useFrame } from '@react-three/fiber'
+import * as THREE from 'three'
 
-export default function MobileGamepad({ playerState }) {
+export default function MobileGamepad({ playerState, setIsUIOpen, setIsGalleryOpen }) {
   const [stickPos, setStickPos] = useState({ x: 0, y: 0 })
   const joystickBaseRef = useRef(null)
   const touchIdRef = useRef(null)
 
+  // Contextual UI State
+  const [contextAction, setContextAction] = useState(null)
+
+  // 🚨 NEW: Polling loop to dynamically figure out what button to show
+  useFrame(() => {
+    let newAction = null
+    const distToGallery = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
+    const distToDoor = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
+
+    if (playerState.isSitting && playerState.sitType === 'desk') {
+      newAction = { key: 'i', label: 'OS', color: '#ff2a5f' }
+    } else if (distToGallery < 1.5 && !playerState.isSitting) {
+      newAction = { key: 'f', label: 'VIEW', color: '#ffb703' }
+    } else if (distToDoor < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
+      newAction = { key: 'e', label: 'OPEN', color: '#00ffcc' }
+    } else if (!playerState.hasSatDown || playerState.isSitting) {
+      // Just a generic interact button if near the desk or sitting
+      newAction = { key: 'e', label: 'E', color: '#00ffcc' }
+    }
+
+    // Only update state if it actually changed to prevent React re-render loops
+    if (JSON.stringify(newAction) !== JSON.stringify(contextAction)) {
+      setContextAction(newAction)
+    }
+  })
+
+  // --- JOYSTICK LOGIC ---
   const handleJoystickTouchStart = (e) => {
     const touch = e.changedTouches[0]
     touchIdRef.current = touch.identifier
@@ -44,6 +73,7 @@ export default function MobileGamepad({ playerState }) {
     }
   }
 
+  // --- CAMERA LOOK LOGIC ---
   const cameraTouchId = useRef(null)
   const lastTouchPos = useRef({ x: 0, y: 0 })
 
@@ -72,7 +102,6 @@ export default function MobileGamepad({ playerState }) {
     playerState.touchLookDelta.y = 0
   }
 
-  // Trigger keyboard events so your existing logic catches them
   const triggerKey = (key) => window.dispatchEvent(new KeyboardEvent('keydown', { key }))
   const triggerKeyUp = (key) => window.dispatchEvent(new KeyboardEvent('keyup', { key }))
 
@@ -89,7 +118,6 @@ export default function MobileGamepad({ playerState }) {
         onTouchStart={handleCameraTouchStart} onTouchMove={handleCameraTouchMove} onTouchEnd={handleCameraTouchEnd}
       />
 
-      {/* Joystick */}
       <div 
         ref={joystickBaseRef}
         style={{ position: 'absolute', bottom: '40px', left: '40px', width: '100px', height: '100px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', pointerEvents: 'auto', touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -98,7 +126,6 @@ export default function MobileGamepad({ playerState }) {
         <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#ffb703', transform: `translate(${stickPos.x}px, ${stickPos.y}px)`, boxShadow: '0 0 10px rgba(255,183,3,0.8)' }} />
       </div>
 
-      {/* 🚨 PERMANENT ACTION BUTTONS */}
       <div style={{ position: 'absolute', bottom: '30px', right: '30px', display: 'flex', gap: '15px', alignItems: 'flex-end', pointerEvents: 'auto' }}>
         <button style={{ ...btnBase, width: '40px', height: '40px', fontSize: '0.7rem' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('v') }}>V</button>
         
@@ -111,12 +138,20 @@ export default function MobileGamepad({ playerState }) {
         <button style={{ ...btnBase, width: '70px', height: '70px', fontSize: '0.9rem', borderColor: 'rgba(255,255,255,0.6)' }} onTouchStart={(e) => { e.preventDefault(); triggerKey(' ') }}>JUMP</button>
       </div>
 
-      {/* 🚨 CONTEXTUAL BUTTONS (Hidden by default, driven by UIManager) */}
+      {/* 🚨 THE SMART CONTEXTUAL BUTTON */}
       <div style={{ position: 'absolute', bottom: '130px', right: '40px', display: 'flex', gap: '15px', pointerEvents: 'auto' }}>
-        <button id="mobile-btn-drop" style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.8rem', display: 'none' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('g') }}>DROP</button>
-        <button id="mobile-btn-f" style={{ ...btnBase, width: '55px', height: '55px', fontSize: '1rem', borderColor: '#ffb703', color: '#ffb703', display: 'none' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('f') }}>F</button>
-        <button id="mobile-btn-os" style={{ ...btnBase, width: '55px', height: '55px', fontSize: '1rem', borderColor: '#ff2a5f', color: '#ff2a5f', display: 'none' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('i') }}>OS</button>
-        <button id="mobile-btn-e" style={{ ...btnBase, width: '65px', height: '65px', fontSize: '1.2rem', borderColor: '#00ffcc', color: '#00ffcc', display: 'none', boxShadow: '0 0 10px rgba(0,255,204,0.4)' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('e') }}>E</button>
+        {playerState.hasCrowbar && (
+          <button style={{ ...btnBase, width: '55px', height: '55px', fontSize: '0.8rem' }} onTouchStart={(e) => { e.preventDefault(); triggerKey('g') }}>DROP</button>
+        )}
+        
+        {contextAction && (
+          <button 
+            style={{ ...btnBase, width: '65px', height: '65px', fontSize: '1rem', borderColor: contextAction.color, color: contextAction.color, boxShadow: `0 0 10px ${contextAction.color}80` }} 
+            onTouchStart={(e) => { e.preventDefault(); triggerKey(contextAction.key) }}
+          >
+            {contextAction.label}
+          </button>
+        )}
       </div>
     </div>
   )

@@ -12,12 +12,13 @@ import InteractiveChair from './components/InteractiveChair'
 import InteractiveSofa from './components/InteractiveSofa'
 import UserCursor from './components/UserCursor.jsx' 
 import InteractiveCrowbar from './components/InteractiveCrowbar.jsx'
-import MobileGamepad from './components/MobileGamepad.jsx' // 🚨 IMPORT THE GAMEPAD
+import MobileGamepad from './components/MobileGamepad.jsx'
 
 // --- RETRO TERMINAL BOOT LOADER ---
 function TerminalBootLoader({ setHasLoaded }) {
   const { progress } = useProgress()
   const [bootLog, setBootLog] = useState([])
+  const [isReadyToStart, setIsReadyToStart] = useState(false)
   
   const totalBlocks = 40
   const filledBlocks = Math.floor((progress / 100) * totalBlocks)
@@ -40,20 +41,36 @@ function TerminalBootLoader({ setHasLoaded }) {
     setBootLog(logs.slice(0, currentStep + 1))
 
     if (progress >= 100) {
-      const t = setTimeout(() => setHasLoaded(true), 1200)
-      return () => clearTimeout(t)
+      setIsReadyToStart(true)
     }
-  }, [progress, setHasLoaded])
+  }, [progress])
 
+  // 🚨 NEW: Handles entering fullscreen on mobile upon user interaction
+  const handleStart = () => {
+    if (isReadyToStart) {
+      // Request fullscreen for mobile devices
+      if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch((err) => console.log(err));
+        }
+      }
+      setHasLoaded(true)
+    }
+  }
+
+  // 🚨 UPDATED: Added onClick to capture user interaction for Fullscreen API
   return (
-    <div style={{
-      position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',
-      backgroundColor: '#050403', zIndex: 9999, display: 'flex', flexDirection: 'column',
-      justifyContent: 'center', alignItems: 'center',
-      color: '#ffb703', 
-      fontFamily: '"Sarpanch", "Courier New", Courier, monospace',
-      cursor: 'none', overflow: 'hidden'
-    }}>
+    <div 
+      onClick={handleStart}
+      style={{
+        position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',
+        backgroundColor: '#050403', zIndex: 9999, display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', alignItems: 'center',
+        color: '#ffb703', 
+        fontFamily: '"Sarpanch", "Courier New", Courier, monospace',
+        cursor: isReadyToStart ? 'pointer' : 'none', overflow: 'hidden'
+      }}
+    >
       <div style={{
         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
         background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%)',
@@ -206,6 +223,7 @@ function RoomWall() {
       </points>
 
       <group position={[-2.55, 1.6, -4.4]} rotation={[0, Math.PI / 2, 0]}>
+        
         <group position={[-0.9, 0, 0]}>
           <mesh position={[0, 0, 0.015]}>
             <planeGeometry args={[0.6, 0.8]} />
@@ -238,6 +256,7 @@ function RoomWall() {
             <meshStandardMaterial color="#000000" />
           </mesh>
         </group>
+
       </group>
     </group>
   )
@@ -245,6 +264,7 @@ function RoomWall() {
 
 function LunarSurface() {
   const moonTexture = useTexture('/moon-texture.jpg')
+  
   moonTexture.wrapS = moonTexture.wrapT = THREE.MirroredRepeatWrapping
   moonTexture.repeat.set(30, 30)
 
@@ -352,30 +372,21 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
   useFrame(() => {
     const isGameActive = isTouchDevice || !!document.pointerLockElement
 
-    // 1. Terminal (OS) Logic
     const prompt = document.getElementById('interact-prompt')
-    const mobileBtnOs = document.getElementById('mobile-btn-os')
     const canUseTerminal = playerState.isSitting && playerState.sitType === 'desk' && isGameActive
     
     if (prompt) prompt.style.display = canUseTerminal ? 'block' : 'none'
     if (prompt && canUseTerminal) prompt.innerText = playerState.mode === 'fpp' ? '[ I ] INTERACT WITH TERMINAL' : 'PRESS [ V ] TO ENTER FPP MODE TO INTERACT'
-    if (mobileBtnOs) mobileBtnOs.style.display = canUseTerminal ? 'flex' : 'none'
 
-    // 2. Gallery (F) Logic
     const galleryPrompt = document.getElementById('gallery-prompt')
-    const mobileBtnF = document.getElementById('mobile-btn-f')
     const distToGallery = playerState.position.distanceTo(new THREE.Vector3(-2.6, 0, -4.4))
     const canViewGallery = distToGallery < 1.5 && !playerState.isSitting && isGameActive
 
     if (galleryPrompt) galleryPrompt.style.display = canViewGallery ? 'block' : 'none'
-    if (mobileBtnF) mobileBtnF.style.display = canViewGallery ? 'flex' : 'none'
 
-    // 3. Multi-use Action (E) Logic
     const welcomeHint = document.getElementById('welcome-hint')
     const doorPrompt = document.getElementById('door-prompt')
-    const mobileBtnE = document.getElementById('mobile-btn-e')
     
-    let showEButton = false
     let showDoorText = false
     let showWelcomeText = false
 
@@ -385,33 +396,24 @@ function UIManager({ playerState, setIsUIOpen, setIsGalleryOpen, isUIOpen, isTou
       const doorDist = playerState.position.distanceTo(new THREE.Vector3(3.5, 0, -1.0))
       if (doorDist < 5.0 && !playerState.isSitting && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
         showDoorText = true
-        showEButton = true
       }
 
       if (!playerState.hasSatDown) {
         showWelcomeText = true
-        showEButton = true
         if (welcomeHint) welcomeHint.innerText = 'OBJECTIVE: Approach the main desk and press [ E ] to sit.'
       } else if (playerState.hasSatDown && playerState.hasUsedTerminal && !playerState.hasOpenedDoor) {
         showWelcomeText = true
         if (welcomeHint) welcomeHint.innerText = 'OBJECTIVE: Go to the door and press [ E ] to open it.'
       }
-
-      // Allow E to stand up if currently sitting
-      if (playerState.isSitting) showEButton = true
     }
 
     if (welcomeHint) welcomeHint.style.display = showWelcomeText ? 'block' : 'none'
     if (doorPrompt) doorPrompt.style.display = showDoorText ? 'block' : 'none'
-    if (mobileBtnE) mobileBtnE.style.display = showEButton ? 'flex' : 'none'
 
-    // 4. Drop (G) Logic
     const dropPrompt = document.getElementById('drop-prompt')
-    const mobileBtnDrop = document.getElementById('mobile-btn-drop')
     const canDrop = playerState.hasCrowbar && isGameActive
     
     if (dropPrompt) dropPrompt.style.display = canDrop ? 'block' : 'none'
-    if (mobileBtnDrop) mobileBtnDrop.style.display = canDrop ? 'flex' : 'none'
   })
 
   return null
@@ -438,7 +440,6 @@ function RespawnTrigger({ rigidBodyRef, playerState }) {
 export default function App() {
   const [hasLoaded, setHasLoaded] = useState(false) 
   
-  // 🚨 NEW: Mobile touch & orientation states
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const [isPortrait, setIsPortrait] = useState(false)
 
@@ -451,7 +452,6 @@ export default function App() {
   const [isLocked, setIsLocked] = useState(false)
   const [showCameraHint, setShowCameraHint] = useState(false)
 
-  // 🚨 NEW: Detect mobile users & screen orientation instantly
   useEffect(() => {
     const checkTouchAndOrientation = () => {
       const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
@@ -498,7 +498,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [])
 
-  // 🚨 NEW: Enforce Landscape Mode for Mobile Users
   if (isTouchDevice && isPortrait && hasLoaded) {
     return (
       <div style={{ width: '100vw', height: '100vh', backgroundColor: '#050403', color: '#ffb703', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"Sarpanch", monospace', textAlign: 'center', padding: '20px' }}>
@@ -524,7 +523,7 @@ export default function App() {
         <TerminalBootLoader setHasLoaded={setHasLoaded} />
       )}
 
-      {/* 🚨 NEW: Render Mobile Gamepad overlay on Landscape Touch Devices */}
+      {/* 🚨 THE MOBILE GAMEPAD */}
       {isTouchDevice && !isPortrait && hasLoaded && !isUIOpen && !isGalleryOpen && (
         <MobileGamepad playerState={playerState} setIsUIOpen={setIsUIOpen} setIsGalleryOpen={setIsGalleryOpen} />
       )}
@@ -605,7 +604,6 @@ export default function App() {
         </div>
       )}
 
-      {/* 🚨 FIX: Ensure Desktop SYSTEM CONTROLS pause menu is fully hidden on mobile devices */}
       {!isTouchDevice && !isLocked && !isUIOpen && !isGalleryOpen && hasLoaded && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.85)', zIndex: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'monospace', pointerEvents: 'none' }}>
           <h2 style={{ color: '#00ffcc', letterSpacing: '2px', marginBottom: '40px', fontSize: '2rem' }}>SYSTEM CONTROLS</h2>
@@ -630,7 +628,6 @@ export default function App() {
         <Suspense fallback={null}>
           <Environment preset="city" />
 
-          {/* 🚨 Pass isTouchDevice down to UIManager */}
           <UIManager playerState={playerState} setIsUIOpen={setIsUIOpen} setIsGalleryOpen={setIsGalleryOpen} isUIOpen={isUIOpen} isTouchDevice={isTouchDevice} />
           
           <SkyboxModel />
@@ -643,7 +640,6 @@ export default function App() {
           <pointLight position={[0, 2.6, 0]} intensity={2} />
           <directionalLight position={[100, 50, 50]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
 
-          {/* On mobile, physics is paused ONLY if UI or Gallery is open. No pointerLock dependency. */}
           <Physics gravity={[0, -9.81, 0]} paused={isUIOpen || isGalleryOpen || (!isLocked && !isTouchDevice)}>
             
             <LunarSurface />

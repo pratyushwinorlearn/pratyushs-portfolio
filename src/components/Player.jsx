@@ -133,13 +133,13 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     const move = new THREE.Vector3()
     
-    // Desktop Keyboard Math
+    // 🚨 Desktop Keyboard Math
     if (keys.current.w) move.add(forward)
     if (keys.current.s) move.sub(forward)
     if (keys.current.d) move.add(right)
     if (keys.current.a) move.sub(right)
     
-    // Mobile Joystick Math (Dynamically scales speed based on how far you drag the stick)
+    // 🚨 Mobile Joystick Math
     if (playerState.moveVector.y !== 0) move.addScaledVector(forward, playerState.moveVector.y)
     if (playerState.moveVector.x !== 0) move.addScaledVector(right, playerState.moveVector.x)
     
@@ -152,15 +152,10 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
     spawnGraceTimer.current += delta
     const isSpawnGrace = spawnGraceTimer.current < 0.5
 
-    // 🚨 NEW: LUNAR PHYSICS LOGIC 🚨
     const pos = rb.translation()
-    // Define the boundaries of the control room. If the player steps outside this box, zero-G activates!
     const isOutside = pos.z > -1.5 || pos.x > 4.5 || pos.x < -3.0 || pos.z < -6.5
     
-    // Moon gravity is exactly 1/6th of Earth gravity
     const activeGravity = isOutside ? (GRAVITY / 6) : GRAVITY
-    
-    // Boost the initial jump force by 1.8x. Combined with low gravity, this gives massive airtime!
     const activeJumpForce = isOutside ? (JUMP_FORCE * 1.8) : JUMP_FORCE
 
     if (grounded) {
@@ -203,7 +198,7 @@ export default function Player({ playerState, rigidBodyRef, colliderRef }) {
 
     let nextAction = 'Idle'
     
-    // Calculate intent from either Keyboard OR Mobile Joystick
+    // 🚨 FIX: Calculate animation intent from BOTH Keyboard AND Mobile Joystick
     const isMovingForward = keys.current.w || playerState.moveVector.y > 0.1
     const isMovingBackward = keys.current.s || playerState.moveVector.y < -0.1
     const isMovingLeft = keys.current.a || playerState.moveVector.x < -0.1
