@@ -44,11 +44,10 @@ The RAG engine is contextually aware of my actual development work, including:
 * **Persona-AI:** An AI Interviewer web application featuring a Node.js/Express backend, Groq AI question generation, and Resend API integration.
 * **Google Flow for Payton:** A frontend scrollytelling parallax animation sequence.
 * **Vision-Language Multimodal AI:** A vision-language classification project for social media moderation.
-* **Last Mile, Lost Time:** A design thinking project reimagining daily commute experiences for urban office workers.
 
 ## ⚙️ Local Setup & Installation
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/yourusername/portfolio.git](https://github.com/yourusername/portfolio.git)
+git clone https://github.com/pratyushwinorlearn/portfolio.git
 cd portfolio

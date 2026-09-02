@@ -538,7 +538,7 @@ export default function App() {
 
       {isUIOpen && !isLocked && !isTouchDevice && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
-          <UserCursor name="Pratyush" color="#890808" size={28} />
+          <UserCursor name="प्रत्युष" color="#000942" size={28} />
         </div>
       )}
 
