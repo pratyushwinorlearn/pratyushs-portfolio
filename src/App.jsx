@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from '@react-three/rapier'
 import { useTexture, Environment, useGLTF, Text, AdaptiveDpr, AdaptiveEvents, useProgress } from '@react-three/drei' 
 import * as THREE from 'three'
+import { Html } from '@react-three/drei'
 
 import Room from './components/Room.jsx'
 import Player from './components/Player.jsx'
@@ -149,6 +150,8 @@ function Earth() {
     </group>
   )
 }
+
+
 
 function RoomWall() {
   const [tex1, tex2, tex3] = useTexture(['/india-today-intern.jpg', '/moon-texture.jpg', '/earth-texture.jpg'])
@@ -538,7 +541,7 @@ export default function App() {
 
       {isUIOpen && !isLocked && !isTouchDevice && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 2147483647 }}>
-          <UserCursor name="प्रत्युष" color="#000942" size={28} />
+          <UserCursor name="प्रत्युष" color="#64c1ff" size={28} />
         </div>
       )}
 
