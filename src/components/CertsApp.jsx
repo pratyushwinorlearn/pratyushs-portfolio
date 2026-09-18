@@ -10,7 +10,7 @@ const myCerts = [
     accent: "#FF9900", // AWS Orange
     initials: "Internship",
     stat: "Issued Aug 2026",
-    image: "/public/india-today-intern.jpg", // Drop your image here
+    image: "/india-today-intern.jpg", // Drop your image here
   },
   {
     name: "Model Context Protocol by Anthropic",
@@ -19,7 +19,7 @@ const myCerts = [
     accent: "#8c52ff", 
     initials: "MCP",
     stat: "Sprint Complete",
-    image: "/public/mcp-cert.png", 
+    image: "/mcp-cert.png", 
   },
   {
     name: "Adobe Hackathon 2026",
@@ -28,7 +28,7 @@ const myCerts = [
     accent: "#00ffcc",
     initials: "Hackathon",
     stat: "Sprint Complete",
-    image: "/public/adobe-cert.png", 
+    image: "/adobe-cert.png", 
   }
 ];
 
