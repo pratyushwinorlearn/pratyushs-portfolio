@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Rnd } from 'react-rnd'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Folder, Terminal, Code, Briefcase, Mail, Search, FileText, Image as ImageIcon, X, Minus, Square, Award, Settings, Map, Bot, Send, MessageSquare } from 'lucide-react'
+import { Folder, Terminal, Code, Briefcase, Mail, Search, FileText, Image as ImageIcon, X, Minus, Square, Award, Settings, Map, Bot, Send, MessageSquare, FileBadge } from 'lucide-react'
 import AwsApp from './AwsApp'
 import GithubClone from './GithubClone'
 import LinkedInClone from './LinkedInClone'
 import FileExplorer from './FileExplorer'
 import RibbonJourneyApp from './RibbonJourneyApp'
+import CertsApp from './CertsApp'
 
 // --- HOVER.DEV LOADER COMPONENTS ---
 const loaderVariants = {
@@ -216,7 +217,7 @@ const FloatingRAGAssistant = () => {
 // --- SETTINGS APP COMPONENT ---
 const SettingsApp = ({ currentWallpaper, setWallpaper }) => {
   const themes = [
-    { id: 'default', name: 'Default OS Theme', type: 'image', value: 'url("/desktopwallpaper.jpg")' },
+    { id: 'default', name: 'Default OS Theme', type: 'image', value: 'url("/desktopwallpaper.png")' },
     { id: 'flowers', name: 'Sisters\' Flower Art', type: 'image', value: 'url("/sisters_flowers.jpg")' },
     { id: 'cyber', name: 'Cyberpunk Neon', type: 'gradient', value: 'linear-gradient(135deg, #1a0010 0%, #ff2a5f 100%)' },
     { id: 'matrix', name: 'Terminal Green', type: 'gradient', value: 'linear-gradient(135deg, #001a0a 0%, #00ffcc 100%)' },
@@ -273,7 +274,7 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
   const [searchQuery, setSearchQuery] = useState('')
   
   const [isBooting, setIsBooting] = useState(false)
-  const [wallpaper, setWallpaper] = useState('url("/desktopwallpaper.jpg")')
+  const [wallpaper, setWallpaper] = useState('url("/desktopwallpaper.png")')
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000)
@@ -294,7 +295,8 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
 
   const desktopApps = [
     { 
-      id: 'ai_interviewer', name: 'AI_Interviewer.exe', icon: <Terminal size={32} color="#00ffcc" />, 
+      id: 'ai_interviewer', name: 'AI_Interviewer.exe', 
+      icon: <Terminal size={28} color="#fff" />, bg: 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)',
       content: (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#000' }}>
           <video src="/videos/persona.mp4" autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -302,7 +304,8 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
       )
     },
     { 
-      id: 'multimodal_ai', name: 'Multimodal_AI.exe', icon: <Terminal size={32} color="#00ffcc" />, 
+      id: 'multimodal_ai', name: 'Multimodal_AI.exe', 
+      icon: <Terminal size={28} color="#fff" />, bg: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
       content: (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#000' }}>
           <video src="/videos/hatemm.mp4" autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -310,7 +313,8 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
       )
     },
     { 
-      id: 'BlindNav', name: 'BlindNav.exe', icon: <Terminal size={32} color="#00ffcc" />, 
+      id: 'BlindNav', name: 'BlindNav.exe', 
+      icon: <Terminal size={28} color="#fff" />, bg: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
       content: (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#000' }}>
           <video src="/videos/blindnav.mp4" autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -318,20 +322,47 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
       )
     },
     { 
-      id: 'movie_digger', name: 'Movie_Digger.exe', icon: <Terminal size={32} color="#00ffcc" />, 
+      id: 'movie_digger', name: 'Movie_Digger.exe', 
+      icon: <Terminal size={28} color="#fff" />, bg: 'linear-gradient(135deg, #f12711 0%, #f5af19 100%)',
       content: (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#000' }}>
           <video src="/videos/movie-digger.mp4" autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )
     },
-    { id: 'aws_badges', name: 'AWS_Cloud.exe', icon: <Award size={32} color="#ff9900" />, content: <AwsApp /> },
-    { id: 'ribbon_journey', name: 'My_Journey.exe', icon: <Map size={32} color="#8338ec" />, content: <RibbonJourneyApp /> },
-    { id: 'github', name: 'GitHub', icon: <Code size={32} color="#fff" />, content: <GithubClone /> },
-    { id: 'linkedin', name: 'LinkedIn', icon: <Briefcase size={32} color="#0077b5" />, content: <LinkedInClone /> },
-    { id: 'file_explorer', name: 'Explorer.exe', icon: <Folder size={32} color="#ffaa00" />, content: <FileExplorer /> },
     { 
-      id: 'settings', name: 'Settings.exe', icon: <Settings size={32} color="#aaa" />, 
+      id: 'aws_badges', name: 'AWS_Cloud.exe', 
+      icon: <Award size={28} color="#fff" />, bg: 'linear-gradient(135deg, #FF9900 0%, #FFB03A 100%)', 
+      content: <AwsApp /> 
+    },
+    { 
+      id: 'certs', name: 'Certifications.exe', 
+      icon: <FileBadge size={28} color="#fff" />, bg: 'linear-gradient(135deg, #FDB99B 0%, #CF8BF3 100%)', 
+      content: <CertsApp /> 
+    },
+    { 
+      id: 'ribbon_journey', name: 'My_Journey.exe', 
+      icon: <Map size={28} color="#fff" />, bg: 'linear-gradient(135deg, #8338ec 0%, #3a0ca3 100%)', 
+      content: <RibbonJourneyApp /> 
+    },
+    { 
+      id: 'github', name: 'GitHub', 
+      icon: <Code size={28} color="#fff" />, bg: 'linear-gradient(135deg, #2b3137 0%, #181c20 100%)', 
+      content: <GithubClone /> 
+    },
+    { 
+      id: 'linkedin', name: 'LinkedIn', 
+      icon: <Briefcase size={28} color="#fff" />, bg: 'linear-gradient(135deg, #0077b5 0%, #00a0dc 100%)', 
+      content: <LinkedInClone /> 
+    },
+    { 
+      id: 'file_explorer', name: 'Explorer.exe', 
+      icon: <Folder size={28} color="#fff" />, bg: 'linear-gradient(135deg, #ffc837 0%, #ff8008 100%)', 
+      content: <FileExplorer /> 
+    },
+    { 
+      id: 'settings', name: 'Settings.exe', 
+      icon: <Settings size={28} color="#fff" />, bg: 'linear-gradient(135deg, #4b6cb7 0%, #182848 100%)', 
       content: <SettingsApp currentWallpaper={wallpaper} setWallpaper={setWallpaper} />
     }
   ]
@@ -444,8 +475,16 @@ export default function PortfolioOS({ isUIOpen, closeUI }) {
             }}>
               <div style={styles.iconGrid}>
                 {desktopApps.map((app) => (
-                  <div key={app.id} style={styles.appIcon} onClick={() => handleAppClick(app)}>
-                    {app.icon}
+                  <div 
+                    key={app.id} 
+                    style={styles.appIcon} 
+                    onClick={() => handleAppClick(app)}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ ...styles.iconTile, background: app.bg || '#333' }}>
+                      {app.icon}
+                    </div>
                     <span style={styles.iconText}>{app.name}</span>
                   </div>
                 ))}
@@ -622,10 +661,16 @@ const styles = {
     padding: '20px', zIndex: 1
   },
   appIcon: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', width: '90px', padding: '10px', borderRadius: '5px',
-    cursor: 'none', textShadow: '1px 1px 2px rgba(0,0,0,0.9)'
+    display: 'flex', flexDirection: 'column', alignItems: 'center', width: '96px', padding: '10px', borderRadius: '8px',
+    cursor: 'none', transition: 'background-color 0.2s', textShadow: '1px 1px 2px rgba(0,0,0,0.9)'
   },
-  iconText: { marginTop: '8px', fontSize: '0.8rem', textAlign: 'center', wordBreak: 'break-word', fontWeight: 'bold' },
+  iconTile: {
+    width: '56px', height: '56px', borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.4)', marginBottom: '8px', border: '1px solid rgba(255,255,255,0.2)'
+  },
+  iconText: { 
+    fontSize: '0.8rem', textAlign: 'center', wordBreak: 'break-word', fontWeight: 'bold', lineHeight: '1.2', textShadow: '1px 1px 3px rgba(0,0,0,0.8)'
+  },
   titleBar: {
     backgroundColor: '#2a2a2a', padding: '8px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     cursor: 'none', borderBottom: '1px solid #111'

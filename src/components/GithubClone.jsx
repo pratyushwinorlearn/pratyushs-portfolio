@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Users, MapPin, Clock, Mail, Link as LinkIcon, Star, BookOpen, ChevronDown } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const languageColors = {
   JavaScript: '#f1e05a',
@@ -12,7 +13,8 @@ const languageColors = {
   'Jupyter Notebook': '#da5b0b'
 }
 
-const ContributionGraph = () => {
+// 🚨 FALLBACK: Keeps your original simulated graph safe in case the API crashes
+const SimulatedGraph = () => {
   const weeks = 52;
   const days = 7;
   const squares = [];
@@ -33,14 +35,113 @@ const ContributionGraph = () => {
   )
 }
 
+// 🚨 NEW: The Live GitHub Calendar translated to pure React + Framer Motion
+const LiveGithubCalendar = ({ username }) => {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [hoveredDay, setHoveredDay] = useState(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    fetch(`https://github-contributions-api.deno.dev/${username}.json`)
+      .then(res => {
+        if (!res.ok) throw new Error("API Error")
+        return res.json()
+      })
+      .then(resData => {
+        setData(resData)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error("GitHub API Error:", err)
+        setError(true)
+        setLoading(false)
+      })
+  }, [username])
+
+  // If API fails, silently fall back to the simulated graph so the UI never breaks
+  if (error || !data || !data.contributions) {
+    return <SimulatedGraph />
+  }
+
+  if (loading) {
+    return <div style={{ height: '110px', display: 'flex', alignItems: 'center', color: '#8b949e', fontSize: '0.9rem' }}>Fetching live contributions...</div>
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%', overflowX: 'auto', paddingBottom: '10px', paddingTop: '10px' }}>
+      <div style={{ display: 'flex', gap: '3px', width: 'max-content' }} onMouseLeave={() => setHoveredDay(null)}>
+        
+        {/* Animated Tooltip */}
+        <AnimatePresence>
+          {hoveredDay && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 5, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                position: 'fixed',
+                zIndex: 9999,
+                pointerEvents: 'none',
+                padding: '6px 10px',
+                backgroundColor: '#c9d1d9',
+                color: '#0d1117',
+                fontSize: '12px',
+                borderRadius: '6px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.8)',
+                whiteSpace: 'nowrap',
+                left: mousePos.x,
+                top: mousePos.y - 45,
+                transform: 'translateX(-50%)'
+              }}
+            >
+              <span style={{ fontWeight: 'bold', marginRight: '4px' }}>{hoveredDay.count}</span>
+              <span style={{ color: '#24292f' }}>contributions on {hoveredDay.date}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* The Grid */}
+        {data.contributions.map((week, wIdx) => (
+          <div key={wIdx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            {week.map((day, dIdx) => {
+              let bg = '#161b22';
+              if (day.contributionLevel === 'FIRST_QUARTILE') bg = '#0e4429';
+              if (day.contributionLevel === 'SECOND_QUARTILE') bg = '#006d32';
+              if (day.contributionLevel === 'THIRD_QUARTILE') bg = '#26a641';
+              if (day.contributionLevel === 'FOURTH_QUARTILE') bg = '#39d353';
+
+              return (
+                <motion.div
+                  key={day.date}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: wIdx * 0.01 + dIdx * 0.01, type: "spring", stiffness: 260, damping: 20 }}
+                  onMouseEnter={(e) => {
+                    setMousePos({ x: e.clientX, y: e.clientY })
+                    setHoveredDay({ date: day.date, count: day.contributionCount })
+                  }}
+                  style={{
+                    width: '10px', height: '10px', backgroundColor: bg, borderRadius: '2px', cursor: 'crosshair'
+                  }}
+                />
+              )
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function GithubClone() {
   const [repos, setRepos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  // 🚨 NEW: Track the currently active tab
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    // 🚨 UPDATED: Fetching up to 100 repos now instead of 6
     fetch('https://api.github.com/users/pratyushwinorlearn/repos?sort=updated&per_page=100')
       .then(response => response.json())
       .then(data => {
@@ -55,7 +156,6 @@ export default function GithubClone() {
       });
   }, []);
 
-  // 🚨 NEW: Helper style function to handle active/inactive tab highlighting
   const getTabStyle = (tabName) => ({
     cursor: 'pointer',
     fontWeight: activeTab === tabName ? '600' : 'normal',
@@ -112,14 +212,12 @@ export default function GithubClone() {
       {/* GitHub Main Content */}
       <div style={{ flex: 1, padding: '20px 40px', overflowY: 'auto' }}>
         
-        {/* 🚨 UPDATED: Interactive Tab Bar */}
         <div style={{ display: 'flex', borderBottom: '1px solid #30363d', marginBottom: '20px', gap: '20px', fontSize: '0.9rem' }}>
           <span onClick={() => setActiveTab('overview')} style={getTabStyle('overview')}>
             <BookOpen size={16} /> Overview
           </span>
           <span onClick={() => setActiveTab('repositories')} style={getTabStyle('repositories')}>
             Repositories
-            {/* Renders a little repo count badge if data has loaded */}
             {!isLoading && <span style={{backgroundColor: '#30363d', padding: '2px 6px', borderRadius: '10px', fontSize: '0.75rem'}}>{repos.length}</span>}
           </span>
           <span style={{ color: '#c9d1d9', paddingBottom: '10px' }}>Projects</span>
@@ -131,7 +229,6 @@ export default function GithubClone() {
           <div style={{ color: '#8b949e', marginBottom: '30px' }}>Loading repositories...</div>
         ) : (
           <>
-            {/* 🚨 CONDITIONAL RENDER: Overview Tab */}
             {activeTab === 'overview' && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -139,7 +236,6 @@ export default function GithubClone() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '30px' }}>
-                  {/* Slice to only show the first 6 for the overview grid */}
                   {repos.slice(0, 6).map((repo) => (
                     <div key={repo.id} style={{ border: '1px solid #30363d', borderRadius: '6px', padding: '15px', backgroundColor: '#0d1117' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -171,13 +267,16 @@ export default function GithubClone() {
                   ))}
                 </div>
 
-                {/* Contributions Graph */}
+                {/* 🚨 UPDATED: The Real Contributions Graph */}
                 <div style={{ border: '1px solid #30363d', borderRadius: '6px', padding: '20px', backgroundColor: '#0d1117', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '0.9rem', color: '#c9d1d9' }}>Simulated active contributions</span>
+                    <span style={{ fontSize: '0.9rem', color: '#c9d1d9' }}>Active contributions</span>
                     <span style={{ fontSize: '0.8rem', color: '#8b949e' }}>Contribution settings <ChevronDown size={12} style={{display:'inline', verticalAlign:'middle'}}/></span>
                   </div>
-                  <ContributionGraph />
+                  
+                  {/* INJECTED COMPONENT */}
+                  <LiveGithubCalendar username="pratyushwinorlearn" />
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', fontSize: '0.75rem', color: '#8b949e' }}>
                     <span>Learn how we count contributions</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
@@ -194,7 +293,6 @@ export default function GithubClone() {
               </>
             )}
 
-            {/* 🚨 CONDITIONAL RENDER: Repositories Tab */}
             {activeTab === 'repositories' && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -204,7 +302,6 @@ export default function GithubClone() {
                   <button style={{ padding: '5px 15px', backgroundColor: '#21262d', color: '#c9d1d9', border: '1px solid #363b42', borderRadius: '6px', cursor: 'pointer' }}>Sort</button>
                 </div>
                 
-                {/* Renders every single repo fetched as a vertical list */}
                 {repos.map((repo) => (
                   <div key={repo.id} style={{ padding: '24px 0', borderBottom: '1px solid #30363d' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
